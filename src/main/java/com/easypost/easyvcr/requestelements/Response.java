@@ -369,6 +369,9 @@ public final class Response extends HttpElement {
         this.headers = headers;
     }
 
+    /**
+     * Add the EasyVCR headers to the response.
+     */
     public void addReplayHeaders() {
         // add default replay headers
         Map<String, String> replayHeaders = Statics.getReplayHeaders();

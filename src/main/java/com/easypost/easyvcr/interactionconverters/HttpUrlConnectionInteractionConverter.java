@@ -1,14 +1,12 @@
 package com.easypost.easyvcr.interactionconverters;
 
 import com.easypost.easyvcr.Censors;
-import com.easypost.easyvcr.Statics;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableRequestBody;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
 import com.easypost.easyvcr.requestelements.Request;
 import com.easypost.easyvcr.requestelements.Response;
 import com.easypost.easyvcr.requestelements.Status;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;

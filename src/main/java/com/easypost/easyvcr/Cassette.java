@@ -4,7 +4,6 @@ import com.easypost.easyvcr.internalutilities.Files;
 import com.easypost.easyvcr.internalutilities.Tools;
 import com.easypost.easyvcr.internalutilities.json.Serialization;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 

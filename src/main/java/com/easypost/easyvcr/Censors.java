@@ -39,7 +39,7 @@ public final class Censors {
      * Initialize a new instance of the Censors factory, using default censor string.
      */
     public Censors() {
-        this(Statics.defaultCensorText);
+        this(Statics.DEFAULT_CENSOR_TEXT);
     }
 
     /**
@@ -70,10 +70,10 @@ public final class Censors {
      */
     public static Censors strict() {
         Censors censors = new Censors();
-        for (String key : Statics.defaultCredentialHeadersToHide) {
+        for (String key : Statics.DEFAULT_CREDENTIAL_HEADERS_TO_HIDE) {
             censors.hideHeader(key);
         }
-        for (String key : Statics.defaultCredentialParametersToHide) {
+        for (String key : Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE) {
             censors.hideQueryParameter(key);
             censors.hideBodyParameter(key);
         }
