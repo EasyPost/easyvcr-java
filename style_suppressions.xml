@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- TODO: Include Test files -->
+    <!-- Don't do any CheckStyle checks on any Test files. -->
+    <suppress checks="[a-zA-Z0-9]*"
+              files="src[\\/]test[\\/].*"/>
+    <suppress checks="[a-zA-Z0-9]*"
+              files=".*Test.java"/>
+    <!-- Don't do any CheckStyle checks on any non-Java files. -->
+    <suppress files=".+\.(?:txt|xml|csv|sh|thrift|html|sql|eot|ttf|woff|css|png)$"
+              checks=".*"/>
+</suppressions>
