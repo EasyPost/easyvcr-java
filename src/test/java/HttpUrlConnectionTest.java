@@ -33,8 +33,8 @@ public class HttpUrlConnectionTest {
         advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
         RecordableHttpsURLConnection connection =
                 TestUtils.getSimpleHttpsURLConnection("https://www.google.com", "test_post_request", Mode.Record, advancedSettings);
-        connection.setDoOutput(true);
         String jsonInputString = "{'name': 'Upendra', 'job': 'Programmer'}";
+        connection.setRequestMethod("POST");
         OutputStream output = null;
         try {
             output = connection.getOutputStream();

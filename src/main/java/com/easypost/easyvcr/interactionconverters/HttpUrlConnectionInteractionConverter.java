@@ -81,8 +81,8 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             String errors = null;
             try {
                 body = readFromInputStream(connection.getInputStream());
-                errors = readFromInputStream(connection.getErrorStream());
             } catch (NullPointerException | IOException ignored) {  // nothing in body if bad status code from server
+                errors = readFromInputStream(connection.getErrorStream());
             }
 
             // apply censors
