@@ -8,7 +8,6 @@ import com.easypost.easyvcr.interactionconverters.HttpUrlConnectionInteractionCo
 import com.easypost.easyvcr.requestelements.HttpInteraction;
 import com.easypost.easyvcr.requestelements.Request;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,7 +41,15 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      */
     private HttpURLConnection connection;
 
+    /**
+     * Stores the request body until the connection is made.
+     */
     private final RecordableRequestBody requestBody;
+
+    /**
+     * Stores the request method until the connection is made.
+     */
+    private String requestMethod = "GET";
     /**
      * The HttpUrlConnectionInteractionConverter that converts the HttpsURLConnection to an HttpInteraction.
      */
@@ -79,9 +86,9 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         // this super is not used
         super(url);
         if (proxy == null) {
-            this.connection = (HttpsURLConnection) url.openConnection();
+            this.connection = (HttpURLConnection) url.openConnection();
         } else {
-            this.connection = (HttpsURLConnection) url.openConnection(proxy);
+            this.connection = (HttpURLConnection) url.openConnection(proxy);
         }
         this.requestBody = new RecordableRequestBody();
         this.cachedInteraction = null;
@@ -222,8 +229,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         // only need to execute this once, on the first getX(), since no more setX() is allowed at that point
         // so the request and response won't be changing
         // important to call directly on connection, rather than this.function() to avoid potential recursion
-        this.cachedInteraction =
-                this.converter.createInteraction(this.connection, this.requestBody, this.advancedSettings.censors);
+        this.cachedInteraction = this.converter.createInteraction(this.connection, this.requestMethod, this.requestBody,
+                this.advancedSettings.censors);
         if (recordToCassette) {
             this.cassette.updateInteraction(this.cachedInteraction, this.advancedSettings.matchRules, false);
         }
@@ -237,8 +244,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @throws InterruptedException If the thread is interrupted.
      */
     private boolean loadExistingInteraction() throws VCRException, InterruptedException {
-        Request request =
-                converter.createRecordedRequest(this.connection, this.requestBody, this.advancedSettings.censors);
+        Request request = converter.createRecordedRequest(this.connection, this.requestMethod, this.requestBody,
+                this.advancedSettings.censors);
         // null because couldn't be created
         if (request == null) {
             return false;
@@ -303,15 +310,14 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
     @Override
     public void connect() throws IOException {
         try {
-            buildCache(); // can't set anything after connecting, so might as well build the cache now
-            // will establish connection as a result of caching, so need to disconnect afterwards
             if (this.requestBody.hasData()) {
                 this.connection.setDoOutput(
                         true); // have to set this to true to allow the ability to get and write to output stream
-                this.requestBody.writeToOutputStream(
-                        this.connection.getOutputStream());
+                this.requestBody.writeToOutputStream(this.connection.getOutputStream());
                 // have to write this at the last second, otherwise locks us out
             }
+            buildCache(); // can't set anything after connecting, so might as well build the cache now
+            // will establish connection as a result of caching, so need to disconnect afterwards
             this.connection.disconnect();
         } catch (VCRException e) {
             throw new RuntimeException(e);
@@ -530,15 +536,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      */
     @Override
     public String getRequestMethod() {
-        if (mode == Mode.Bypass) {
-            return this.connection.getRequestMethod();
-        }
-        try {
-            buildCache();
-            return getStringElementFromCache((interaction) -> interaction.getRequest().getMethod(), null);
-        } catch (VCRException e) {
-            throw new RuntimeException(e);
-        }
+        return this.requestMethod;
     }
 
     /**
@@ -564,10 +562,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      */
     @Override
     public void setRequestMethod(String method) throws ProtocolException {
-        if (cachedInteraction != null) {
-            throw new IllegalStateException("Cannot set anything after interaction has been cached");
-        }
-        this.connection.setRequestMethod(method);
+        this.requestMethod = method;
     }
 
     /**
@@ -979,8 +974,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      */
     @Override
     public boolean getDoOutput() {
-        // not in cassette, go to real connection
-        return this.connection.getDoOutput();
+        return true; // VCR requests, regardless of method, are always capable of request body
     }
 
     /**
@@ -997,12 +991,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      */
     @Override
     public void setDoOutput(boolean dooutput) {
-        if (cachedInteraction != null) {
-            throw new IllegalStateException("Cannot set anything after interaction has been cached");
-        }
-        if (this.connection.getDoOutput() != dooutput) {
-            this.connection.setDoOutput(dooutput);
-        }
+        // VCR requests, regardless of method, are always capable of request body, so this does nothing
     }
 
     /**
