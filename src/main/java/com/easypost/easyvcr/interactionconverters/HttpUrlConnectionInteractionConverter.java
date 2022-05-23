@@ -30,7 +30,7 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
      * @param censors     The censors to apply to the request.
      * @return The EasyVCR request.
      */
-    public Request createRecordedRequest(HttpURLConnection connection, String requestMethod, RecordableRequestBody requestBody,
+    public Request createRecordedRequest(HttpURLConnection connection, RecordableRequestBody requestBody,
                                          Censors censors) {
         try {
             // collect elements from the connection
@@ -38,6 +38,7 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             connection.disconnect();
             Map<String, List<String>> headers = connection.getRequestProperties();
             String body = requestBody.getData();
+            String method = connection.getRequestMethod();
 
             // apply censors
             uriString = censors.applyQueryParametersCensors(uriString);
@@ -47,7 +48,7 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
 
             // create the request
             Request request = new Request();
-            request.setMethod(requestMethod);
+            request.setMethod(method);
             request.setUri(new URI(uriString));
             request.setHeaders(headers);
             request.setBody(body);
@@ -116,9 +117,9 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
      * @param censors     The censors to apply to the interaction.
      * @return The EasyVCR HttpInteraction.
      */
-    public HttpInteraction createInteraction(HttpURLConnection connection, String requestMethod, RecordableRequestBody requestBody,
+    public HttpInteraction createInteraction(HttpURLConnection connection, RecordableRequestBody requestBody,
                                              Censors censors) {
-        Request request = createRecordedRequest(connection, requestMethod, requestBody, censors);
+        Request request = createRecordedRequest(connection, requestBody, censors);
         ResponseAndTime responseAndTime = createRecordedResponse(connection, censors);
         connection.disconnect();
         return createInteraction(request, responseAndTime.response, responseAndTime.time);
