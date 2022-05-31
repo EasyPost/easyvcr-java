@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -37,13 +38,13 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             String uriString = connection.getURL().toString();
             connection.disconnect();
             Map<String, List<String>> headers = connection.getRequestProperties();
-            String body = requestBody.getData();
+            String body = new String(requestBody.getData(), StandardCharsets.UTF_8);
             String method = connection.getRequestMethod();
 
             // apply censors
-            uriString = censors.applyQueryParametersCensors(uriString);
-            headers = censors.applyHeadersCensors(headers);
-            body = censors.applyBodyParametersCensors(body);
+            uriString = censors.censorQueryParameters(uriString);
+            headers = censors.censorHeaders(headers);
+            body = censors.censorBodyParameters(body);
 
 
             // create the request
@@ -82,13 +83,13 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             String errors = null;
             try {
                 body = readFromInputStream(connection.getInputStream());
-                errors = readFromInputStream(connection.getErrorStream());
             } catch (NullPointerException | IOException ignored) {  // nothing in body if bad status code from server
+                errors = readFromInputStream(connection.getErrorStream());
             }
 
             // apply censors
-            uriString = censors.applyQueryParametersCensors(uriString);
-            headers = censors.applyHeadersCensors(headers);
+            uriString = censors.censorQueryParameters(uriString);
+            headers = censors.censorHeaders(headers);
             // we don't censor the response body, only the request body
 
             // create the response
@@ -97,9 +98,11 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             response.setUri(new URI(uriString));
             response.setHeaders(headers);
             if (body != null) {
+                body = censors.censorBodyParameters(body);
                 response.setBody(body);
             }
             if (errors != null) {
+                errors = censors.censorBodyParameters(errors);
                 response.setErrors(errors);
             }
 

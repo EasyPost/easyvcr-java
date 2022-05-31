@@ -260,9 +260,9 @@ public final class RecordableURL {
      * Open an HTTP connection to the URL.
      *
      * @return a RecordableHttpURLConnection instance.
-     * @throws java.io.IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
-    public RecordableHttpURLConnection openConnection() throws java.io.IOException {
+    public RecordableHttpURLConnection openConnection() throws IOException {
         return new RecordableHttpURLConnection(this.url, this.cassette, this.mode, this.advancedSettings);
     }
 
@@ -271,9 +271,9 @@ public final class RecordableURL {
      *
      * @param proxy the proxy to use.
      * @return a RecordableHttpURLConnection instance.
-     * @throws java.io.IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
-    public RecordableHttpURLConnection openConnection(Proxy proxy) throws java.io.IOException {
+    public RecordableHttpURLConnection openConnection(Proxy proxy) throws IOException {
         return new RecordableHttpURLConnection(this.url, proxy, this.cassette, this.mode, this.advancedSettings);
     }
 
@@ -281,7 +281,7 @@ public final class RecordableURL {
      * Open an HTTPS connection to the URL.
      *
      * @return a RecordableHttpsURLConnection instance.
-     * @throws java.io.IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
     public RecordableHttpsURLConnection openConnectionSecure() throws IOException {
         return new RecordableHttpsURLConnection(this.url, this.cassette, this.mode, this.advancedSettings);
@@ -292,7 +292,7 @@ public final class RecordableURL {
      *
      * @param proxy the proxy to use.
      * @return a RecordableHttpsURLConnection instance.
-     * @throws java.io.IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
     public RecordableHttpsURLConnection openConnectionSecure(Proxy proxy) throws IOException {
         return new RecordableHttpsURLConnection(this.url, proxy, this.cassette, this.mode, this.advancedSettings);

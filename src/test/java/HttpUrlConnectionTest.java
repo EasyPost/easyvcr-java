@@ -6,6 +6,7 @@ import com.easypost.easyvcr.HttpClients;
 import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
+import com.google.gson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,6 +15,8 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
 
@@ -33,8 +36,9 @@ public class HttpUrlConnectionTest {
         advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
         RecordableHttpsURLConnection connection =
                 TestUtils.getSimpleHttpsURLConnection("https://www.google.com", "test_post_request", Mode.Record, advancedSettings);
-        connection.setDoOutput(true);
         String jsonInputString = "{'name': 'Upendra', 'job': 'Programmer'}";
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
         OutputStream output = null;
         try {
             output = connection.getOutputStream();
@@ -47,6 +51,32 @@ public class HttpUrlConnectionTest {
         connection.connect();
         String json = readFromInputStream(connection.getInputStream());
         Assert.assertNotNull(json);
+    }
+
+    @Test
+    public void testNonJsonDataWithCensors() throws IOException {
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+
+        List<String> bodyCensors = new ArrayList<>();
+        bodyCensors.add("Date");
+        advancedSettings.censors = new Censors("*****").hideBodyParameters(bodyCensors);
+
+        advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
+        RecordableHttpsURLConnection connection =
+                TestUtils.getSimpleHttpsURLConnection("https://www.google.com", "test_non_json", Mode.Record, advancedSettings);
+        String jsonInputString = "{'name': 'Upendra', 'job': 'Programmer'}";
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        OutputStream output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(jsonInputString.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        Assert.assertThrows(JsonParseException.class, () -> connection.connect());
     }
 
     @Test
@@ -139,7 +169,9 @@ public class HttpUrlConnectionTest {
 
         // set up advanced settings
         String censorString = "censored-by-test";
-        Censors censors = new Censors(censorString).hideHeader("Date");
+        List<String> headers = new ArrayList<>();
+        headers.add("Date");
+        Censors censors = new Censors(censorString).hideHeaders(headers);
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
         advancedSettings.censors = censors;

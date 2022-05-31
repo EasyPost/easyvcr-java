@@ -30,4 +30,22 @@ public class Utilities {
         }
         return false;
     }
+
+    /**
+     * Check if the object is a dictionary.
+     * @param obj The object to check.
+     * @return True if the object is a dictionary.
+     */
+    public static boolean isDictionary(Object obj) {
+        return obj instanceof Map;
+    }
+
+    /**
+     * Check if the object is a list.
+     * @param obj The object to check.
+     * @return True if the object is a list.
+     */
+    public static boolean isList(Object obj) {
+        return obj instanceof List;
+    }
 }

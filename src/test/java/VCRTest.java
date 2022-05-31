@@ -12,6 +12,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VCRTest {
 
@@ -170,7 +172,9 @@ public class VCRTest {
         String censorString = "censored-by-test";
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
-        advancedSettings.censors = new Censors(censorString).hideHeader("Date");
+        List<String> censoredHeaders = new ArrayList<>();
+        censoredHeaders.add("Date");
+        advancedSettings.censors = new Censors(censorString).hideHeaders(censoredHeaders);
         advancedSettings.matchRules = new MatchRules().byMethod().byFullUrl().byBody();
 
         VCR vcr = new VCR(advancedSettings);
