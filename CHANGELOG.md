@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.2.0 (2022-05-31)
+
+- Enhance censoring to work on nested data
+  - Censoring only works on JSON data; attempting to censor non-JSON data will throw an exception
+- Fix request body not being sent on POST, etc. requests
+
 ## v0.1.0 (2022-05-18)
 
 - Initial release
