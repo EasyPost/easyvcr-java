@@ -90,6 +90,8 @@ Now when tests are run, no real HTTP calls will be made. Instead, the HTTP respo
 
 Censor sensitive data in the request and response bodies and headers, such as API keys and auth tokens.
 
+NOTE: Censors can only be applied to JSON request and response bodies. Attempting to apply censors to non-JSON data will throw an exception.
+
 **Default**: *Disabled*
 
 ```java

@@ -2,6 +2,7 @@ package com.easypost.easyvcr;
 
 import com.easypost.easyvcr.internalutilities.Tools;
 import com.easypost.easyvcr.internalutilities.json.Serialization;
+import com.google.gson.JsonParseException;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
@@ -306,15 +307,14 @@ public final class Censors {
             bodyDictionary = Serialization.convertJsonToObject(body, Map.class);
             Map<String, Object> censoredBodyDictionary = applyBodyCensors(bodyDictionary);
             return censoredBodyDictionary == null ? body : Serialization.convertObjectToJson(censoredBodyDictionary);
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
             // body is not a JSON dictionary
             try {
                 List<Object> bodyList = Serialization.convertJsonToObject(body, List.class);
                 List<Object> censoredBodyList = applyBodyCensors(bodyList);
                 return censoredBodyList == null ? body : Serialization.convertObjectToJson(censoredBodyList);
-            } catch (Exception ex2) {
-                // short circuit if body is not a JSON dictionary or JSON list
-                return body;
+            } catch (Exception notJsonData) {
+                throw new JsonParseException("Body is not a JSON dictionary or list");
             }
         }
     }

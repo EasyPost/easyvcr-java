@@ -6,6 +6,7 @@ import com.easypost.easyvcr.HttpClients;
 import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
+import com.google.gson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,6 +51,32 @@ public class HttpUrlConnectionTest {
         connection.connect();
         String json = readFromInputStream(connection.getInputStream());
         Assert.assertNotNull(json);
+    }
+
+    @Test
+    public void testNonJsonDataWithCensors() throws IOException {
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+
+        List<String> bodyCensors = new ArrayList<>();
+        bodyCensors.add("Date");
+        advancedSettings.censors = new Censors("*****").hideBodyParameters(bodyCensors);
+
+        advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
+        RecordableHttpsURLConnection connection =
+                TestUtils.getSimpleHttpsURLConnection("https://www.google.com", "test_non_json", Mode.Record, advancedSettings);
+        String jsonInputString = "{'name': 'Upendra', 'job': 'Programmer'}";
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        OutputStream output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(jsonInputString.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        Assert.assertThrows(JsonParseException.class, () -> connection.connect());
     }
 
     @Test
