@@ -57,7 +57,7 @@ public final class Censors {
     /**
      * Initialize a new instance of the Censors factory.
      *
-     * @param censorString The string to use to censor sensitive information.
+     * @param censorString  The string to use to censor sensitive information.
      * @param caseSensitive Whether to use case sensitive censoring.
      */
     public Censors(String censorString, boolean caseSensitive) {
@@ -223,29 +223,23 @@ public final class Censors {
 
         for (Object object : list) {
             Object value = object;
-            if (Utilities.isDictionary(value))
-            {
+            if (Utilities.isDictionary(value)) {
                 // recursively censor inner dictionaries
                 try {
                     // change the value if can be parsed as a dictionary
-                    value = applyBodyCensors((Map<String, Object>)value);
+                    value = applyBodyCensors((Map<String, Object>) value);
                 } catch (ClassCastException e) {
                     // otherwise, skip censoring
                 }
-            }
-            else if (Utilities.isList(value))
-            {
+            } else if (Utilities.isList(value)) {
                 // recursively censor list elements
                 try {
                     // change the value if can be parsed as a list
-                    value = applyBodyCensors((List<Object>)value);
+                    value = applyBodyCensors((List<Object>) value);
                 } catch (ClassCastException e) {
                     // otherwise, skip censoring
                 }
-            }
-            else {
-                // either a primitive or null, no censoring needed
-            }
+            }  // either a primitive or null, no censoring needed
 
             censoredList.add(value);
         }
@@ -265,48 +259,35 @@ public final class Censors {
         for (Map.Entry<String, Object> entry : dictionary.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            if (keyShouldBeCensored(key, this.bodyParamsToCensor))
-            {
-                if (value == null)
-                {
-                    // don't need to worry about censoring something that's null (don't replace null with the censor string)
+            if (keyShouldBeCensored(key, this.bodyParamsToCensor)) {
+                if (value == null) {
+                    // don't need to worry about censoring something that's null
+                    // (don't replace null with the censor string)
                     continue;
-                }
-                else if (Utilities.isDictionary(value))
-                {
+                } else if (Utilities.isDictionary(value)) {
                     // replace with empty dictionary
                     censoredBodyDictionary.put(key, new HashMap<>());
-                }
-                else if (Utilities.isList(value))
-                {
+                } else if (Utilities.isList(value)) {
                     // replace with empty array
                     censoredBodyDictionary.put(key, new ArrayList<>());
-                }
-                else
-                {
+                } else {
                     // replace with censor text
                     censoredBodyDictionary.put(key, this.censorText);
                 }
-            }
-            else
-            {
-                if (Utilities.isDictionary(value))
-                {
+            } else {
+                if (Utilities.isDictionary(value)) {
                     // recursively censor inner dictionaries
                     try {
                         // change the value if can be parsed as a dictionary
-                        value = applyBodyCensors((Map<String, Object>)value);
+                        value = applyBodyCensors((Map<String, Object>) value);
                     } catch (ClassCastException e) {
                         // otherwise, skip censoring
                     }
-                }
-
-                else if (Utilities.isList(value))
-                {
+                } else if (Utilities.isList(value)) {
                     // recursively censor list elements
                     try {
                         // change the value if can be parsed as a list
-                        value = applyBodyCensors((List<Object>)value);
+                        value = applyBodyCensors((List<Object>) value);
                     } catch (ClassCastException e) {
                         // otherwise, skip censoring
                     }
@@ -319,37 +300,28 @@ public final class Censors {
         return censoredBodyDictionary;
     }
 
-    private String censorJsonBodyParameters(String body)
-    {
+    private String censorJsonBodyParameters(String body) {
         Map<String, Object> bodyDictionary;
-        try
-        {
+        try {
             bodyDictionary = Serialization.convertJsonToObject(body, Map.class);
             Map<String, Object> censoredBodyDictionary = applyBodyCensors(bodyDictionary);
             return censoredBodyDictionary == null ? body : Serialization.convertObjectToJson(censoredBodyDictionary);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // body is not a JSON dictionary
-            try
-            {
+            try {
                 List<Object> bodyList = Serialization.convertJsonToObject(body, List.class);
                 List<Object> censoredBodyList = applyBodyCensors(bodyList);
                 return censoredBodyList == null ? body : Serialization.convertObjectToJson(censoredBodyList);
-            }
-            catch (Exception ex2)
-            {
+            } catch (Exception ex2) {
                 // short circuit if body is not a JSON dictionary or JSON list
                 return body;
             }
         }
     }
 
-    private boolean keyShouldBeCensored(String foundKey, List<String> keysToCensor)
-    {
+    private boolean keyShouldBeCensored(String foundKey, List<String> keysToCensor) {
         // keysToCensor are already cased as needed
-        if (!this.caseSensitive)
-        {
+        if (!this.caseSensitive) {
             foundKey = foundKey.toLowerCase();
         }
 
