@@ -30,4 +30,12 @@ public class Utilities {
         }
         return false;
     }
+
+    public static boolean isDictionary(Object obj) {
+        return obj instanceof Map;
+    }
+
+    public static boolean isList(Object obj) {
+        return obj instanceof List;
+    }
 }

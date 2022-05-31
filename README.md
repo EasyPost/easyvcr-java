@@ -106,7 +106,9 @@ public class Example {
         Cassette cassette = new Cassette("path/to/cassettes", "my_cassette");
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
-        advancedSettings.censors = new Censors().hideHeader("Authorization"); // Hide the Authorization header
+        List<String> headersToCensor = new ArrayList<>();
+        headersToCensor.add("Authorization"); // Hide the Authorization header
+        advancedSettings.censors = new Censors().hideHeader(headersToCensor);
         // or
         advancedSettings.censors = Censors.strict(); // use the built-in strict censoring mode (hides common sensitive data)
 
@@ -196,7 +198,9 @@ import com.easypost.easyvcr.clients.httpurlconnection.RecordableURL;
 public class Example {
     public static void main(String[] args) {
         AdvancedSettings advancedSettings = new AdvancedSettings();
-        advancedSettings.censors = new Censors().hideQueryParameter("api_key"); // hide the api_key query parameter
+        List<String> censoredQueryParams = new ArrayList<String>();
+        censoredQueryParams.add("api_key"); // hide the api_key query parameter
+        advancedSettings.censors = new Censors().hideQueryParameter(censoredQueryParams);
 
         // Create a VCR with the advanced settings applied
         VCR vcr = new VCR(advancedSettings);

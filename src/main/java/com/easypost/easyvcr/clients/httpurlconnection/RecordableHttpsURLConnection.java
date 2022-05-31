@@ -45,7 +45,9 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * The internal HttpsURLConnection that this class wraps.
      */
     private HttpsURLConnection connection;
-
+    /**
+     * Stores the request body until the connection is made.
+     */
     private final RecordableRequestBody requestBody;
     /**
      * The HttpUrlConnectionInteractionConverter that converts the HttpsURLConnection to an HttpInteraction.
@@ -308,11 +310,20 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
     public void connect() throws IOException {
         try {
             if (this.requestBody.hasData()) {
+                setRequestProperty("Content-Type", "application/json"); // only supports JSON for now
                 this.connection.setDoOutput(
                         true); // have to set this to true to allow the ability to get and write to output stream
-                this.requestBody.writeToOutputStream(
-                        this.connection.getOutputStream());
                 // have to write this at the last second, otherwise locks us out
+                OutputStream output = null;
+                try {
+                    output = this.connection.getOutputStream();
+                    byte[] jsonData = this.requestBody.getData();
+                    output.write(jsonData);
+                } finally {
+                    if (output != null) {
+                        output.close();
+                    }
+                }
             }
             buildCache(); // can't set anything after connecting, so might as well build the cache now
             // will establish connection as a result of caching, so need to disconnect afterwards
@@ -530,7 +541,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * get the request method.
      *
      * @return the HTTP request method
-     * @see #setRequestMethod(java.lang.String)
+     * @see #setRequestMethod(String)
      */
     @Override
     public String getRequestMethod() {
@@ -786,7 +797,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      *
      * @return the content type of the resource that the URL references,
      * or {@code null} if not known.
-     * @see java.net.URLConnection#getHeaderField(java.lang.String)
+     * @see java.net.URLConnection#getHeaderField(String)
      */
     @Override
     public String getContentType() {
@@ -798,7 +809,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      *
      * @return the content encoding of the resource that the URL references,
      * or {@code null} if not known.
-     * @see java.net.URLConnection#getHeaderField(java.lang.String)
+     * @see java.net.URLConnection#getHeaderField(String)
      */
     @Override
     public String getContentEncoding() {
@@ -811,7 +822,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * @return the expiration date of the resource that this URL references,
      * or 0 if not known. The value is the number of milliseconds since
      * January 1, 1970 GMT.
-     * @see java.net.URLConnection#getHeaderField(java.lang.String)
+     * @see java.net.URLConnection#getHeaderField(String)
      */
     @Override
     public long getExpiration() {
@@ -911,7 +922,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      *                                 getting the content.
      * @throws UnknownServiceException if the protocol does not support
      *                                 the content type.
-     * @see java.net.ContentHandlerFactory#createContentHandler(java.lang.String)
+     * @see java.net.ContentHandlerFactory#createContentHandler(String)
      * @see java.net.URLConnection#getContentType()
      * @see java.net.URLConnection#setContentHandlerFactory(java.net.ContentHandlerFactory)
      */
@@ -1153,7 +1164,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * @param value the value associated with it.
      * @throws IllegalStateException if already connected
      * @throws NullPointerException  if key is {@code null}
-     * @see #getRequestProperty(java.lang.String)
+     * @see #getRequestProperty(String)
      */
     @Override
     public void setRequestProperty(String key, String value) {
@@ -1189,7 +1200,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * @return the value of the named general request property for this
      * connection. If key is null, then null is returned.
      * @throws IllegalStateException if already connected
-     * @see #setRequestProperty(java.lang.String, java.lang.String)
+     * @see #setRequestProperty(String, String)
      */
     @Override
     public String getRequestProperty(String key) {
@@ -1283,7 +1294,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * @return the sending date of the resource that the URL references,
      * or {@code 0} if not known. The value returned is the
      * number of milliseconds since January 1, 1970 GMT.
-     * @see java.net.URLConnection#getHeaderField(java.lang.String)
+     * @see java.net.URLConnection#getHeaderField(String)
      */
     @Override
     public long getDate() {
@@ -1297,7 +1308,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      *
      * @return the date the resource referenced by this
      * {@code URLConnection} was last modified, or 0 if not known.
-     * @see java.net.URLConnection#getHeaderField(java.lang.String)
+     * @see java.net.URLConnection#getHeaderField(String)
      */
     @Override
     public long getLastModified() {
@@ -1365,8 +1376,8 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      * @throws UnknownServiceException if the protocol does not support
      *                                 the content type.
      * @see java.net.URLConnection#getContent()
-     * @see java.net.ContentHandlerFactory#createContentHandler(java.lang.String)
-     * @see java.net.URLConnection#getContent(java.lang.Class[])
+     * @see java.net.ContentHandlerFactory#createContentHandler(String)
+     * @see java.net.URLConnection#getContent(Class[])
      * @see java.net.URLConnection#setContentHandlerFactory(java.net.ContentHandlerFactory)
      * @since 1.3
      */

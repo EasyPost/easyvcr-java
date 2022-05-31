@@ -5,13 +5,13 @@ import java.io.OutputStream;
 
 public final class RecordableRequestBody extends OutputStream {
 
-    private String data;
+    private byte[] data;
 
     /**
      * Constructor.
      */
     public RecordableRequestBody() {
-        this.data = "";
+        this.data = new byte[0];
     }
 
     @Override
@@ -26,7 +26,10 @@ public final class RecordableRequestBody extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        data += new String(b, off, len);
+        byte[] newData = new byte[data.length + len];
+        System.arraycopy(data, 0, newData, 0, data.length);
+        System.arraycopy(b, off, newData, data.length, len);
+        data = newData;
     }
 
     @Override
@@ -39,7 +42,7 @@ public final class RecordableRequestBody extends OutputStream {
      *
      * @return the String data stored in this object
      */
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
@@ -49,16 +52,6 @@ public final class RecordableRequestBody extends OutputStream {
      * @return true if this object is storing any data, false otherwise
      */
     public boolean hasData() {
-        return !data.isEmpty();
-    }
-
-    /**
-     * Write the String data stored in this object to the given OutputStream.
-     *
-     * @param outputStream the OutputStream to write to
-     * @throws IOException if an I/O error occurs
-     */
-    public void writeToOutputStream(OutputStream outputStream) throws IOException {
-        outputStream.write(data.getBytes());
+        return data.length > 0;
     }
 }
