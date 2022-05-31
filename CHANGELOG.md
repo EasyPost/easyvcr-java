@@ -4,7 +4,7 @@
 
 - Enhance censoring to work on nested data
   - Censoring only works on JSON data; attempting to censor non-JSON data will throw an exception
-- Fix request body not being sent on POST, etc. requests
+- Fix request body not being sent on POST, PUT, PATCH requests
 
 ## v0.1.0 (2022-05-18)
 
