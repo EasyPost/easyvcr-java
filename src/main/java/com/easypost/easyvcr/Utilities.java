@@ -48,4 +48,18 @@ public class Utilities {
     public static boolean isList(Object obj) {
         return obj instanceof List;
     }
+
+    /**
+     * Remove elements from a JSON string.
+     * @param json The JSON string to remove elements from.
+     * @param elements The elements to remove.
+     * @return The JSON string without the elements.
+     */
+    public static String removeJsonElements(String json, List<CensorElement> elements) {
+        if (json == null || elements == null) {
+            return json;
+        }
+
+        return Censors.censorJsonData(json, "FILTERED", elements);
+    }
 }

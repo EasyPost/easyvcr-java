@@ -19,13 +19,9 @@ import java.util.Map;
  */
 public final class Censors {
     /**
-     * The body parameters to censor.
+     * The body elements to censor.
      */
-    private final List<String> bodyParamsToCensor;
-    /**
-     * Whether censor keys are case sensitive.
-     */
-    private final boolean caseSensitive;
+    private final List<CensorElement> bodyElementsToCensor;
     /**
      * The string to replace censored data with.
      */
@@ -33,11 +29,11 @@ public final class Censors {
     /**
      * The headers to censor.
      */
-    private final List<String> headersToCensor;
+    private final List<CensorElement> headersToCensor;
     /**
      * The query parameters to censor.
      */
-    private final List<String> queryParamsToCensor;
+    private final List<CensorElement> queryParamsToCensor;
 
     /**
      * Initialize a new instance of the Censors factory, using default censor string.
@@ -52,21 +48,10 @@ public final class Censors {
      * @param censorString The string to use to censor sensitive information.
      */
     public Censors(String censorString) {
-        this(censorString, false);
-    }
-
-    /**
-     * Initialize a new instance of the Censors factory.
-     *
-     * @param censorString  The string to use to censor sensitive information.
-     * @param caseSensitive Whether to use case sensitive censoring.
-     */
-    public Censors(String censorString, boolean caseSensitive) {
         this.queryParamsToCensor = new ArrayList<>();
-        this.bodyParamsToCensor = new ArrayList<>();
+        this.bodyElementsToCensor = new ArrayList<>();
         this.headersToCensor = new ArrayList<>();
         this.censorText = censorString;
-        this.caseSensitive = caseSensitive;
     }
 
     /**
@@ -85,75 +70,165 @@ public final class Censors {
      */
     public static Censors strict() {
         Censors censors = new Censors();
-        censors.hideHeaders(Statics.DEFAULT_CREDENTIAL_HEADERS_TO_HIDE);
-        censors.hideBodyParameters(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
-        censors.hideQueryParameters(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
+        censors.hideHeaderKeys(Statics.DEFAULT_CREDENTIAL_HEADERS_TO_HIDE);
+        censors.hideBodyElementKeys(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
+        censors.hideQueryParameterKeys(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
         return censors;
     }
 
-    /**
-     * Add a rule to censor specified body parameters.
-     * Note: Only top-level pairs can be censored.
-     *
-     * @param parameterKeys Keys of body parameters to censor.
-     * @return This Censors factory.
-     */
-    public Censors hideBodyParameters(List<String> parameterKeys) {
-        bodyParamsToCensor.addAll(parameterKeys);
-        return this;
+    private static List<Object> applyJsonCensors(List<Object> list, String censorText,
+                                                 List<CensorElement> elementsToCensor) {
+        if (list == null || list.size() == 0) {
+            // short circuit if list is null or empty
+            return list;
+        }
+
+        List<Object> censoredList = new ArrayList<>();
+
+        for (Object object : list) {
+            Object value = object;
+            if (Utilities.isDictionary(value)) {
+                // recursively censor inner dictionaries
+                try {
+                    // change the value if can be parsed as a dictionary
+                    value = applyJsonCensors((Map<String, Object>) value, censorText, elementsToCensor);
+                } catch (ClassCastException e) {
+                    // otherwise, skip censoring
+                }
+            } else if (Utilities.isList(value)) {
+                // recursively censor list elements
+                try {
+                    // change the value if can be parsed as a list
+                    value = applyJsonCensors((List<Object>) value, censorText, elementsToCensor);
+                } catch (ClassCastException e) {
+                    // otherwise, skip censoring
+                }
+            }  // either a primitive or null, no censoring needed
+
+            censoredList.add(value);
+        }
+
+        return censoredList;
+
+    }
+
+    private static Map<String, Object> applyJsonCensors(Map<String, Object> dictionary, String censorText,
+                                                        List<CensorElement> elementsToCensor) {
+        if (dictionary == null || dictionary.size() == 0) {
+            // short circuit if dictionary is null or empty
+            return dictionary;
+        }
+
+        Map<String, Object> censoredBodyDictionary = new HashMap<>();
+
+        for (Map.Entry<String, Object> entry : dictionary.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (keyShouldBeCensored(key, elementsToCensor)) {
+                if (value == null) {
+                    // don't need to worry about censoring something that's null
+                    // (don't replace null with the censor string)
+                    continue;
+                } else if (Utilities.isDictionary(value)) {
+                    // replace with empty dictionary
+                    censoredBodyDictionary.put(key, new HashMap<>());
+                } else if (Utilities.isList(value)) {
+                    // replace with empty array
+                    censoredBodyDictionary.put(key, new ArrayList<>());
+                } else {
+                    // replace with censor text
+                    censoredBodyDictionary.put(key, censorText);
+                }
+            } else {
+                if (Utilities.isDictionary(value)) {
+                    // recursively censor inner dictionaries
+                    try {
+                        // change the value if can be parsed as a dictionary
+                        value = applyJsonCensors((Map<String, Object>) value, censorText, elementsToCensor);
+                    } catch (ClassCastException e) {
+                        // otherwise, skip censoring
+                    }
+                } else if (Utilities.isList(value)) {
+                    // recursively censor list elements
+                    try {
+                        // change the value if can be parsed as a list
+                        value = applyJsonCensors((List<Object>) value, censorText, elementsToCensor);
+                    } catch (ClassCastException e) {
+                        // otherwise, skip censoring
+                    }
+                }
+
+                censoredBodyDictionary.put(key, value);
+            }
+        }
+
+        return censoredBodyDictionary;
     }
 
     /**
-     * Add a rule to censor specified header keys.
-     * Note: This will censor the header keys in both the request and response.
+     * Apply censors to a JSON string.
      *
-     * @param headerKeys Keys of headers to censor.
-     * @return This Censors factory.
+     * @param data             The JSON string to censor.
+     * @param censorText       The string to use to censor sensitive information.
+     * @param elementsToCensor The body elements to censor.
+     * @return The censored JSON string.
      */
-    public Censors hideHeaders(List<String> headerKeys) {
-        headersToCensor.addAll(headerKeys);
-        return this;
+    public static String censorJsonData(String data, String censorText, List<CensorElement> elementsToCensor) {
+        Map<String, Object> bodyDictionary;
+        try {
+            bodyDictionary = Serialization.convertJsonToObject(data, Map.class);
+            Map<String, Object> censoredBodyDictionary = applyJsonCensors(bodyDictionary, censorText, elementsToCensor);
+            return censoredBodyDictionary == null ? data : Serialization.convertObjectToJson(censoredBodyDictionary);
+        } catch (Exception ignored) {
+            // body is not a JSON dictionary
+            try {
+                List<Object> bodyList = Serialization.convertJsonToObject(data, List.class);
+                List<Object> censoredBodyList = applyJsonCensors(bodyList, censorText, elementsToCensor);
+                return censoredBodyList == null ? data : Serialization.convertObjectToJson(censoredBodyList);
+            } catch (Exception notJsonData) {
+                throw new JsonParseException("Body is not a JSON dictionary or list");
+            }
+        }
+    }
+
+    private static boolean keyShouldBeCensored(String foundKey, List<CensorElement> elementsToCensor) {
+        return elementsToCensor.stream().anyMatch(queryElement -> queryElement.matches(foundKey));
     }
 
     /**
-     * Add a rule to censor specified query parameters.
+     * Censor the appropriate body elements.
      *
-     * @param parameterKeys Keys of query parameters to censor.
-     * @return This Censors factory.
-     */
-    public Censors hideQueryParameters(List<String> parameterKeys) {
-        queryParamsToCensor.addAll(parameterKeys);
-        return this;
-    }
-
-    /**
-     * Censor the appropriate body parameters.
-     *
-     * @param body String representation of request body to apply censors to.
+     * @param body                 String representation of request body to apply censors to.
+     * @param censorText           The string to use to censor sensitive information.
+     * @param bodyElementsToCensor The body elements to censor.
      * @return Censored string representation of request body.
      */
-    public String censorBodyParameters(String body) {
+    public static String censorBodyParameters(String body, String censorText,
+                                              List<CensorElement> bodyElementsToCensor) {
         if (body == null || body.length() == 0) {
             // short circuit if body is null or empty
             return body;
         }
 
-        if (bodyParamsToCensor.size() == 0) {
+        if (bodyElementsToCensor.size() == 0) {
             // short circuit if there are no censors to apply
             return body;
         }
 
         // TODO: Future different content type support here, only JSON is supported currently
-        return censorJsonBodyParameters(body);
+        return censorJsonData(body, censorText, bodyElementsToCensor);
     }
 
     /**
      * Censor the appropriate headers.
      *
-     * @param headers Map of headers to apply censors to.
+     * @param headers         Map of headers to apply censors to.
+     * @param censorText      The string to use to censor sensitive information.
+     * @param headersToCensor The headers to censor.
      * @return Censored map of headers.
      */
-    public Map<String, List<String>> censorHeaders(Map<String, List<String>> headers) {
+    public static Map<String, List<String>> censorHeaders(Map<String, List<String>> headers, String censorText,
+                                                          List<CensorElement> headersToCensor) {
         if (headers == null || headers.size() == 0) {
             // short circuit if there are no headers to censor
             return headers;
@@ -166,21 +241,25 @@ public final class Censors {
 
         final Map<String, List<String>> headersCopy = new HashMap<>(headers);
 
-        for (String headerKey : headersToCensor) {
-            if (headersCopy.containsKey(headerKey)) {
+        List<String> headerKeys = new ArrayList<>(headersCopy.keySet());
+        for (String headerKey : headerKeys) {
+            if (keyShouldBeCensored(headerKey, headersToCensor)) {
                 headersCopy.put(headerKey, Collections.singletonList(censorText));
             }
         }
+
         return headersCopy;
     }
 
     /**
      * Censor the appropriate query parameters.
      *
-     * @param url Full URL string to apply censors to.
+     * @param url                 Full URL string to apply censors to.
+     * @param censorText          The string to use to censor sensitive information.
+     * @param queryParamsToCensor The query parameters to censor.
      * @return Censored URL string.
      */
-    public String censorQueryParameters(String url) {
+    public static String censorQueryParameters(String url, String censorText, List<CensorElement> queryParamsToCensor) {
         if (url == null || url.length() == 0) {
             // short circuit if url is null
             return url;
@@ -198,9 +277,10 @@ public final class Censors {
             return url;
         }
 
-        for (String parameterKey : queryParamsToCensor) {
-            if (queryParameters.containsKey(parameterKey)) {
-                queryParameters.put(parameterKey, censorText);
+        List<String> queryKeys = new ArrayList<>(queryParameters.keySet());
+        for (String queryKey : queryKeys) {
+            if (keyShouldBeCensored(queryKey, queryParamsToCensor)) {
+                queryParameters.put(queryKey, censorText);
             }
         }
 
@@ -214,117 +294,141 @@ public final class Censors {
         return uri.getScheme() + "://" + uri.getHost() + uri.getPath() + "?" + formattedQueryParameters;
     }
 
-    private List<Object> applyBodyCensors(List<Object> list) {
-        if (list == null || list.size() == 0) {
-            // short circuit if list is null or empty
-            return list;
-        }
-
-        List<Object> censoredList = new ArrayList<>();
-
-        for (Object object : list) {
-            Object value = object;
-            if (Utilities.isDictionary(value)) {
-                // recursively censor inner dictionaries
-                try {
-                    // change the value if can be parsed as a dictionary
-                    value = applyBodyCensors((Map<String, Object>) value);
-                } catch (ClassCastException e) {
-                    // otherwise, skip censoring
-                }
-            } else if (Utilities.isList(value)) {
-                // recursively censor list elements
-                try {
-                    // change the value if can be parsed as a list
-                    value = applyBodyCensors((List<Object>) value);
-                } catch (ClassCastException e) {
-                    // otherwise, skip censoring
-                }
-            }  // either a primitive or null, no censoring needed
-
-            censoredList.add(value);
-        }
-
-        return censoredList;
-
+    /**
+     * Add a rule to censor specified body elements.
+     *
+     * @param elements List of body elements to censor.
+     * @return This Censors factory.
+     */
+    public Censors hideBodyElements(List<CensorElement> elements) {
+        bodyElementsToCensor.addAll(elements);
+        return this;
     }
 
-    private Map<String, Object> applyBodyCensors(Map<String, Object> dictionary) {
-        if (dictionary == null || dictionary.size() == 0) {
-            // short circuit if dictionary is null or empty
-            return dictionary;
+    /**
+     * Add a rule to censor specified body elements.
+     *
+     * @param elementKeys   Keys of body elements to censor.
+     * @param caseSensitive Whether to use case-sensitive censoring.
+     * @return This Censors factory.
+     */
+    public Censors hideBodyElementKeys(List<String> elementKeys, boolean caseSensitive) {
+        for (String elementKey : elementKeys) {
+            bodyElementsToCensor.add(new CensorElement(elementKey, caseSensitive));
         }
-
-        Map<String, Object> censoredBodyDictionary = new HashMap<>();
-
-        for (Map.Entry<String, Object> entry : dictionary.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            if (keyShouldBeCensored(key, this.bodyParamsToCensor)) {
-                if (value == null) {
-                    // don't need to worry about censoring something that's null
-                    // (don't replace null with the censor string)
-                    continue;
-                } else if (Utilities.isDictionary(value)) {
-                    // replace with empty dictionary
-                    censoredBodyDictionary.put(key, new HashMap<>());
-                } else if (Utilities.isList(value)) {
-                    // replace with empty array
-                    censoredBodyDictionary.put(key, new ArrayList<>());
-                } else {
-                    // replace with censor text
-                    censoredBodyDictionary.put(key, this.censorText);
-                }
-            } else {
-                if (Utilities.isDictionary(value)) {
-                    // recursively censor inner dictionaries
-                    try {
-                        // change the value if can be parsed as a dictionary
-                        value = applyBodyCensors((Map<String, Object>) value);
-                    } catch (ClassCastException e) {
-                        // otherwise, skip censoring
-                    }
-                } else if (Utilities.isList(value)) {
-                    // recursively censor list elements
-                    try {
-                        // change the value if can be parsed as a list
-                        value = applyBodyCensors((List<Object>) value);
-                    } catch (ClassCastException e) {
-                        // otherwise, skip censoring
-                    }
-                }
-
-                censoredBodyDictionary.put(key, value);
-            }
-        }
-
-        return censoredBodyDictionary;
+        return this;
     }
 
-    private String censorJsonBodyParameters(String body) {
-        Map<String, Object> bodyDictionary;
-        try {
-            bodyDictionary = Serialization.convertJsonToObject(body, Map.class);
-            Map<String, Object> censoredBodyDictionary = applyBodyCensors(bodyDictionary);
-            return censoredBodyDictionary == null ? body : Serialization.convertObjectToJson(censoredBodyDictionary);
-        } catch (Exception ignored) {
-            // body is not a JSON dictionary
-            try {
-                List<Object> bodyList = Serialization.convertJsonToObject(body, List.class);
-                List<Object> censoredBodyList = applyBodyCensors(bodyList);
-                return censoredBodyList == null ? body : Serialization.convertObjectToJson(censoredBodyList);
-            } catch (Exception notJsonData) {
-                throw new JsonParseException("Body is not a JSON dictionary or list");
-            }
-        }
+    /**
+     * Add a rule to censor specified body elements.
+     *
+     * @param elementKeys Keys of body elementKeys to censor.
+     * @return This Censors factory.
+     */
+    public Censors hideBodyElementKeys(List<String> elementKeys) {
+        return hideBodyElementKeys(elementKeys, false);
     }
 
-    private boolean keyShouldBeCensored(String foundKey, List<String> keysToCensor) {
-        // keysToCensor are already cased as needed
-        if (!this.caseSensitive) {
-            foundKey = foundKey.toLowerCase();
-        }
+    /**
+     * Add a rule to censor specified header keys.
+     * Note: This will censor the header keys in both the request and response.
+     *
+     * @param headers List of Headers to censor.
+     * @return This Censors factory.
+     */
+    public Censors hideHeaders(List<CensorElement> headers) {
+        headersToCensor.addAll(headers);
+        return this;
+    }
 
-        return keysToCensor.contains(foundKey);
+    /**
+     * Add a rule to censor specified header keys.
+     * Note: This will censor the header keys in both the request and response.
+     *
+     * @param headerKeys    Keys of headers to censor.
+     * @param caseSensitive Whether to use case-sensitive censoring.
+     * @return This Censors factory.
+     */
+    public Censors hideHeaderKeys(List<String> headerKeys, boolean caseSensitive) {
+        for (String headerKey : headerKeys) {
+            headersToCensor.add(new CensorElement(headerKey, caseSensitive));
+        }
+        return this;
+    }
+
+    /**
+     * Add a rule to censor specified header keys.
+     * Note: This will censor the header keys in both the request and response.
+     *
+     * @param headerKeys Keys of headers to censor.
+     * @return This Censors factory.
+     */
+    public Censors hideHeaderKeys(List<String> headerKeys) {
+        return hideHeaderKeys(headerKeys, false);
+    }
+
+    /**
+     * Add a rule to censor specified query parameters.
+     *
+     * @param elements List of QueryElements to censor.
+     * @return This Censors factory.
+     */
+    public Censors hideQueryParameters(List<CensorElement> elements) {
+        queryParamsToCensor.addAll(elements);
+        return this;
+    }
+
+    /**
+     * Add a rule to censor specified query parameters.
+     *
+     * @param parameterKeys Keys of query parameters to censor.
+     * @param caseSensitive Whether to use case-sensitive censoring.
+     * @return This Censors factory.
+     */
+    public Censors hideQueryParameterKeys(List<String> parameterKeys, boolean caseSensitive) {
+        for (String parameterKey : parameterKeys) {
+            queryParamsToCensor.add(new CensorElement(parameterKey, caseSensitive));
+        }
+        return this;
+    }
+
+    /**
+     * Add a rule to censor specified query parameters.
+     *
+     * @param parameterKeys Keys of query parameters to censor.
+     * @return This Censors factory.
+     */
+    public Censors hideQueryParameterKeys(List<String> parameterKeys) {
+        return hideQueryParameterKeys(parameterKeys, false);
+    }
+
+    /**
+     * Censor the appropriate body elements.
+     *
+     * @param body String representation of request body to apply censors to.
+     * @return Censored string representation of request body.
+     */
+    public String censorBodyParameters(String body) {
+        return censorBodyParameters(body, this.censorText, this.bodyElementsToCensor);
+    }
+
+    /**
+     * Censor the appropriate headers.
+     *
+     * @param headers Map of headers to apply censors to.
+     * @return Censored map of headers.
+     */
+    public Map<String, List<String>> censorHeaders(Map<String, List<String>> headers) {
+        return censorHeaders(headers, this.censorText, this.headersToCensor);
+    }
+
+    /**
+     * Censor the appropriate query parameters.
+     *
+     * @param url Full URL string to apply censors to.
+     * @return Censored URL string.
+     */
+    public String censorQueryParameters(String url) {
+        return censorQueryParameters(url, this.censorText, this.queryParamsToCensor);
     }
 }

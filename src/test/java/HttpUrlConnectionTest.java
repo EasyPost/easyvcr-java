@@ -59,7 +59,7 @@ public class HttpUrlConnectionTest {
 
         List<String> bodyCensors = new ArrayList<>();
         bodyCensors.add("Date");
-        advancedSettings.censors = new Censors("*****").hideBodyParameters(bodyCensors);
+        advancedSettings.censors = new Censors("*****").hideBodyElementKeys(bodyCensors);
 
         advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
         RecordableHttpsURLConnection connection =
@@ -171,7 +171,7 @@ public class HttpUrlConnectionTest {
         String censorString = "censored-by-test";
         List<String> headers = new ArrayList<>();
         headers.add("Date");
-        Censors censors = new Censors(censorString).hideHeaders(headers);
+        Censors censors = new Censors(censorString).hideHeaderKeys(headers);
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
         advancedSettings.censors = censors;
