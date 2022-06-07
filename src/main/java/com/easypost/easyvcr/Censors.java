@@ -243,6 +243,9 @@ public final class Censors {
 
         List<String> headerKeys = new ArrayList<>(headersCopy.keySet());
         for (String headerKey : headerKeys) {
+            if (headerKey == null) {
+                continue;
+            }
             if (keyShouldBeCensored(headerKey, headersToCensor)) {
                 headersCopy.put(headerKey, Collections.singletonList(censorText));
             }

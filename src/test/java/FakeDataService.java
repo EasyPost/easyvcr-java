@@ -3,24 +3,32 @@ import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpURLConnectio
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.easypost.easyvcr.internalutilities.json.Serialization;
 
+import java.util.List;
+
 import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
 
 public class FakeDataService {
 
-    public final static String GET_POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+    public class ExchangeRates {
+        public String code;
+        public String currency;
+        public List<Rate> rates;
+        public String table;
+    }
+
+    public class Rate {
+        public String effectiveDate;
+        public float mid;
+        public String no;
+    }
+
+    public static final String URL = "https://api.nbp.pl/api/exchangerates/rates/a/gbp/last/10/?format=json";
 
     private interface FakeDataServiceBaseInterface {
 
-        Post[] getPosts() throws Exception;
+        ExchangeRates getExchangeRates() throws Exception;
 
-        Object getPostsRawResponse() throws Exception;
-    }
-
-    public static class Post {
-        public int userId;
-        public int id;
-        public String title;
-        public String body;
+        Object getExchangeRatesRawResponse() throws Exception;
     }
 
     public static class HttpUrlConnection extends FakeDataServiceBase implements FakeDataServiceBaseInterface {
@@ -44,16 +52,16 @@ public class FakeDataService {
         }
 
         @Override
-        public Post[] getPosts() throws Exception {
-            RecordableHttpURLConnection client = (RecordableHttpURLConnection) getPostsRawResponse();
+        public ExchangeRates getExchangeRates() throws Exception {
+            RecordableHttpURLConnection client = (RecordableHttpURLConnection) getExchangeRatesRawResponse();
             String json = readFromInputStream(client.getInputStream());
 
-            return Serialization.convertJsonToObject(json, Post[].class);
+            return Serialization.convertJsonToObject(json, ExchangeRates.class);
         }
 
         @Override
-        public Object getPostsRawResponse() throws Exception {
-            RecordableHttpURLConnection client = getClient(GET_POSTS_URL);
+        public Object getExchangeRatesRawResponse() throws Exception {
+            RecordableHttpURLConnection client = getClient(URL);
             client.connect();
             return client;
         }
@@ -80,16 +88,16 @@ public class FakeDataService {
         }
 
         @Override
-        public Post[] getPosts() throws Exception {
-            RecordableHttpsURLConnection client = (RecordableHttpsURLConnection) getPostsRawResponse();
+        public ExchangeRates getExchangeRates() throws Exception {
+            RecordableHttpsURLConnection client = (RecordableHttpsURLConnection) getExchangeRatesRawResponse();
             String json = readFromInputStream(client.getInputStream());
 
-            return Serialization.convertJsonToObject(json, Post[].class);
+            return Serialization.convertJsonToObject(json, ExchangeRates.class);
         }
 
         @Override
-        public Object getPostsRawResponse() throws Exception {
-            RecordableHttpsURLConnection client = getClient(GET_POSTS_URL);
+        public Object getExchangeRatesRawResponse() throws Exception {
+            RecordableHttpsURLConnection client = getClient(URL);
             client.connect();
             return client;
         }

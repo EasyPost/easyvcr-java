@@ -41,7 +41,7 @@ public final class Serialization {
      * @return JSON string
      */
     public static String convertObjectToJson(Object object) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
         return gson.toJson(object);
     }
 }
