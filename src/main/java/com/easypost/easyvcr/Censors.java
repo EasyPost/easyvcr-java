@@ -76,6 +76,14 @@ public final class Censors {
         return censors;
     }
 
+    /**
+     * Apply censors to a JSON list.
+     *
+     * @param list             JSON list to process.
+     * @param censorText       Text to use when censoring an element.
+     * @param elementsToCensor List of elements to find and censor.
+     * @return Censored JSON list.
+     */
     private static List<Object> applyJsonCensors(List<Object> list, String censorText,
                                                  List<CensorElement> elementsToCensor) {
         if (list == null || list.size() == 0) {
@@ -109,9 +117,16 @@ public final class Censors {
         }
 
         return censoredList;
-
     }
 
+    /**
+     * Apply censors to a JSON dictionary.
+     *
+     * @param dictionary       JSON dictionary to process.
+     * @param censorText       Text to use when censoring an element.
+     * @param elementsToCensor List of elements to find and censor.
+     * @return Censored JSON dicstionary.
+     */
     private static Map<String, Object> applyJsonCensors(Map<String, Object> dictionary, String censorText,
                                                         List<CensorElement> elementsToCensor) {
         if (dictionary == null || dictionary.size() == 0) {
@@ -191,6 +206,13 @@ public final class Censors {
         }
     }
 
+    /**
+     * Check if the current JSON element should be censored.
+     *
+     * @param foundKey         Key of the JSON element to evaluate.
+     * @param elementsToCensor List of censors to compare against.
+     * @return True if the value should be censored, false otherwise.
+     */
     private static boolean keyShouldBeCensored(String foundKey, List<CensorElement> elementsToCensor) {
         return elementsToCensor.stream().anyMatch(queryElement -> queryElement.matches(foundKey));
     }
