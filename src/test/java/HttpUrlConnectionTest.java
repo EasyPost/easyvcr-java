@@ -1,5 +1,6 @@
 import com.easypost.easyvcr.AdvancedSettings;
 import com.easypost.easyvcr.Cassette;
+import com.easypost.easyvcr.CensorElement;
 import com.easypost.easyvcr.Censors;
 import com.easypost.easyvcr.HttpClientType;
 import com.easypost.easyvcr.HttpClients;
@@ -12,6 +13,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -22,12 +24,12 @@ import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
 
 public class HttpUrlConnectionTest {
 
-    private static FakeDataService.Post[] GetFakePostsRequest(Cassette cassette, Mode mode) throws Exception {
+    private static FakeDataService.ExchangeRates GetExchangeRatesRequest(Cassette cassette, Mode mode) throws Exception {
         RecordableHttpsURLConnection connection = TestUtils.getSimpleHttpsURLConnection(cassette.name, mode, null);
 
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
 
-        return fakeDataService.getPosts();
+        return fakeDataService.getExchangeRates();
     }
 
     @Test
@@ -59,7 +61,7 @@ public class HttpUrlConnectionTest {
 
         List<String> bodyCensors = new ArrayList<>();
         bodyCensors.add("Date");
-        advancedSettings.censors = new Censors("*****").hideBodyParameters(bodyCensors);
+        advancedSettings.censors = new Censors("*****").censorBodyElementsByKeys(bodyCensors);
 
         advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
         RecordableHttpsURLConnection connection =
@@ -102,7 +104,7 @@ public class HttpUrlConnectionTest {
         Cassette cassette = TestUtils.getCassette("test_erase");
 
         // record something to the cassette
-        FakeDataService.Post[] posts = GetFakePostsRequest(cassette, Mode.Record);
+        FakeDataService.ExchangeRates exchangeRates = GetExchangeRatesRequest(cassette, Mode.Record);
         Assert.assertTrue(cassette.numInteractions() > 0);
 
         // erase the cassette
@@ -115,10 +117,9 @@ public class HttpUrlConnectionTest {
         Cassette cassette = TestUtils.getCassette("test_erase_and_record");
         cassette.erase(); // Erase cassette before recording
 
-        FakeDataService.Post[] posts = GetFakePostsRequest(cassette, Mode.Record);
+        FakeDataService.ExchangeRates exchangeRates = GetExchangeRatesRequest(cassette, Mode.Record);
 
-        Assert.assertNotNull(posts);
-        Assert.assertEquals(posts.length, 100);
+        Assert.assertNotNull(exchangeRates);
         Assert.assertTrue(cassette.numInteractions() > 0); // Make sure cassette is not empty
     }
 
@@ -128,7 +129,7 @@ public class HttpUrlConnectionTest {
         cassette.erase(); // Erase cassette before recording
 
         // cassette is empty, so replaying should throw an exception
-        Assert.assertThrows(Exception.class, () -> GetFakePostsRequest(cassette, Mode.Replay));
+        Assert.assertThrows(Exception.class, () -> GetExchangeRatesRequest(cassette, Mode.Replay));
     }
 
     @Test
@@ -137,12 +138,12 @@ public class HttpUrlConnectionTest {
         cassette.erase(); // Erase cassette before recording
 
         // in replay mode, if cassette is empty, should throw an exception
-        Assert.assertThrows(Exception.class, () -> GetFakePostsRequest(cassette, Mode.Replay));
+        Assert.assertThrows(Exception.class, () -> GetExchangeRatesRequest(cassette, Mode.Replay));
         Assert.assertEquals(cassette.numInteractions(), 0); // Make sure cassette is still empty
 
         // in auto mode, if cassette is empty, should make and record a real request
-        FakeDataService.Post[] posts = GetFakePostsRequest(cassette, Mode.Auto);
-        Assert.assertNotNull(posts);
+        FakeDataService.ExchangeRates exchangeRates = GetExchangeRatesRequest(cassette, Mode.Auto);
+        Assert.assertNotNull(exchangeRates);
         Assert.assertTrue(cassette.numInteractions() > 0); // Make sure cassette is no longer empty
     }
 
@@ -153,12 +154,12 @@ public class HttpUrlConnectionTest {
 
         RecordableHttpsURLConnection connection =
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                        FakeDataService.GET_POSTS_URL, cassette, Mode.Record);
+                        FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
 
         // Most elements of a VCR request are black-boxed, so we can't test them here.
         // Instead, we can get the recreated HttpResponseMessage and check the details.
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getPostsRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
         Assert.assertNotNull(response);
     }
 
@@ -171,7 +172,7 @@ public class HttpUrlConnectionTest {
         String censorString = "censored-by-test";
         List<String> headers = new ArrayList<>();
         headers.add("Date");
-        Censors censors = new Censors(censorString).hideHeaders(headers);
+        Censors censors = new Censors(censorString).censorHeadersByKeys(headers);
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
         advancedSettings.censors = censors;
@@ -179,15 +180,15 @@ public class HttpUrlConnectionTest {
         // record cassette with advanced settings first
         RecordableHttpsURLConnection connection =
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                        FakeDataService.GET_POSTS_URL, cassette, Mode.Record, advancedSettings);
+                        FakeDataService.URL, cassette, Mode.Record, advancedSettings);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        Object ignore = fakeDataService.getPostsRawResponse();
+        Object ignore = fakeDataService.getExchangeRatesRawResponse();
 
         // now replay cassette
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                FakeDataService.GET_POSTS_URL, cassette, Mode.Replay, advancedSettings);
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getPostsRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
 
         // check that the replayed response contains the censored header
         Assert.assertNotNull(response);
@@ -205,17 +206,17 @@ public class HttpUrlConnectionTest {
         // record cassette with advanced settings first
         RecordableHttpsURLConnection connection =
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                        FakeDataService.GET_POSTS_URL, cassette, Mode.Record);
+                        FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        Object ignore = fakeDataService.getPostsRawResponse();
+        Object ignore = fakeDataService.getExchangeRatesRawResponse();
 
         // replay cassette with default match rules, should find a match
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                FakeDataService.GET_POSTS_URL, cassette, Mode.Replay);
+                FakeDataService.URL, cassette, Mode.Replay);
         connection.setRequestProperty("X-Custom-Header",
                 "custom-value"); // add custom header to request, shouldn't matter when matching by default rules
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getPostsRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
         Assert.assertNotNull(response);
 
         // replay cassette with custom match rules, should not find a match because request is different (throw exception)
@@ -224,12 +225,12 @@ public class HttpUrlConnectionTest {
         advancedSettings.matchRules = matchRules;
 
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                FakeDataService.GET_POSTS_URL, cassette, Mode.Replay, advancedSettings);
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
         connection.setRequestProperty("X-Custom-Header",
                 "custom-value"); // add custom header to request, causing a match failure when matching by everything
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
         FakeDataService.HttpsUrlConnection finalFakeDataService = fakeDataService;
-        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getPosts());
+        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getExchangeRates());
     }
 
     @Test
@@ -240,21 +241,21 @@ public class HttpUrlConnectionTest {
         // record cassette first
         RecordableHttpsURLConnection connection =
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                        FakeDataService.GET_POSTS_URL, cassette, Mode.Record);
+                        FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        Object ignore = fakeDataService.getPosts();
+        Object ignore = fakeDataService.getExchangeRates();
 
         // baseline - how much time does it take to replay the cassette?
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                FakeDataService.GET_POSTS_URL, cassette, Mode.Replay);
+                FakeDataService.URL, cassette, Mode.Replay);
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
 
         Instant start = Instant.now();
-        FakeDataService.Post[] posts = fakeDataService.getPosts();
+        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
         Instant end = Instant.now();
 
         // confirm the normal replay worked, note time
-        Assert.assertNotNull(posts);
+        Assert.assertNotNull(exchangeRates);
         int normalReplayTime = (int) Duration.between(start, end).toMillis();
 
         // set up advanced settings
@@ -262,16 +263,117 @@ public class HttpUrlConnectionTest {
         AdvancedSettings advancedSettings = new AdvancedSettings();
         advancedSettings.manualDelay = delay;
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                FakeDataService.GET_POSTS_URL, cassette, Mode.Replay, advancedSettings);
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
 
         // time replay request
         start = Instant.now();
-        posts = fakeDataService.getPosts();
+        exchangeRates = fakeDataService.getExchangeRates();
         end = Instant.now();
 
         // check that the delay was respected
-        Assert.assertNotNull(posts);
+        Assert.assertNotNull(exchangeRates);
         Assert.assertTrue((int) Duration.between(start, end).toMillis() >= delay);
+    }
+
+    @Test
+    public void testIgnoreElementsFailMatch() throws URISyntaxException, IOException {
+        Cassette cassette = TestUtils.getCassette("test_ignore_elements_fail_match");
+        cassette.erase(); // Erase cassette before recording
+
+        String bodyData1 = "{'name': 'Upendra', 'job': 'Programmer'}";
+        String bodyData2 = "{'name': 'NewName', 'job': 'Programmer'}";
+
+        // record baseline request first
+        RecordableHttpsURLConnection connection = HttpClients.newHttpsURLConnection(FakeDataService.URL, cassette, Mode.Record);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        // use bodyData1 to make request
+        OutputStream output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(bodyData1.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        connection.connect();
+
+        // try to replay with slightly different data
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        // matching strictly by body
+        advancedSettings.matchRules = new MatchRules().byMethod().byFullUrl().byBody();
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        // use bodyData2 to make request
+        output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(bodyData2.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        connection.connect();
+
+        // should fail since we're strictly in replay mode and there's no exact match
+        int statusCode = connection.getResponseCode();
+        Assert.assertEquals(0, statusCode);
+    }
+
+    @Test
+    public void testIgnoreElementsPassMatch() throws URISyntaxException, IOException {
+        Cassette cassette = TestUtils.getCassette("test_ignore_elements_pass_match");
+        cassette.erase(); // Erase cassette before recording
+
+        String bodyData1 = "{'name': 'Upendra', 'job': 'Programmer'}";
+        String bodyData2 = "{'name': 'NewName', 'job': 'Programmer'}";
+
+        // record baseline request first
+        RecordableHttpsURLConnection connection = HttpClients.newHttpsURLConnection(FakeDataService.URL, cassette, Mode.Record);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        // use bodyData1 to make request
+        OutputStream output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(bodyData1.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        connection.connect();
+
+        // try to replay with slightly different data, but ignoring the differences
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        // ignore the element that is different
+        List<CensorElement> ignoredElements = new ArrayList<CensorElement>() {{
+            add(new CensorElement("name", false));
+        }};
+        advancedSettings.matchRules = new MatchRules().byMethod().byFullUrl().byBody(ignoredElements);
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        // use bodyData2 to make request
+        output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(bodyData2.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        connection.connect();
+
+        // should not fail since we're ignoring the body elements that differ
+        int statusCode = connection.getResponseCode();
+        Assert.assertNotEquals(0, statusCode);
     }
 }

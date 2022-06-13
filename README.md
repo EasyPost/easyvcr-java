@@ -98,10 +98,13 @@ NOTE: Censors can only be applied to JSON request and response bodies. Attemptin
 import com.easypost.easyvcr;
 import com.easypost.easyvcr.AdvancedSettings;
 import com.easypost.easyvcr.Cassette;
+import com.easypost.easyvcr.CensorElement;
 import com.easypost.easyvcr.Censors;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableURL;
+
+import java.util.ArrayList;
 
 public class Example {
     public static void main(String[] args) {
@@ -110,9 +113,13 @@ public class Example {
         AdvancedSettings advancedSettings = new AdvancedSettings();
         List<String> headersToCensor = new ArrayList<>();
         headersToCensor.add("Authorization"); // Hide the Authorization header
-        advancedSettings.censors = new Censors().hideHeader(headersToCensor);
+        advancedSettings.censors = new Censors().censorHeadersByKeys(headersToCensor);
+        advancedSettings.censors.censorBodyElements(new ArrayList<>() {{
+            add(new CensorElement("table", true)); // Hide the table element (case-sensitive) in the request and response body
+        }});
         // or
-        advancedSettings.censors = Censors.strict(); // use the built-in strict censoring mode (hides common sensitive data)
+        advancedSettings.censors =
+                Censors.strict(); // use the built-in strict censoring mode (hides common sensitive data)
 
         RecordableURL recordableURL =
                 new RecordableURL("https://www.example.com", cassette, Mode.Replay, advancedSettings);

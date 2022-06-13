@@ -77,8 +77,8 @@ public class VCRTest {
 
         // record a request to a cassette
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
-        FakeDataService.Post[] posts = fakeDataService.getPosts();
-        Assert.assertNotNull(posts);
+        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
+        Assert.assertNotNull(exchangeRates);
         Assert.assertTrue(cassette.numInteractions() > 0);
 
         // erase the cassette
@@ -108,9 +108,8 @@ public class VCRTest {
         vcr.insert(cassette);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
 
-        FakeDataService.Post[] posts = fakeDataService.getPosts();
-        Assert.assertNotNull(posts);
-        Assert.assertEquals(100, posts.length);
+        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
+        Assert.assertNotNull(exchangeRates);
     }
 
     @Test
@@ -120,9 +119,8 @@ public class VCRTest {
         vcr.insert(cassette);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
 
-        FakeDataService.Post[] posts = fakeDataService.getPosts();
-        Assert.assertNotNull(posts);
-        Assert.assertEquals(100, posts.length);
+        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
+        Assert.assertNotNull(exchangeRates);
         Assert.assertTrue(cassette.numInteractions() > 0);
     }
 
@@ -134,14 +132,14 @@ public class VCRTest {
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
 
         // record first
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getPostsRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
         Assert.assertTrue(cassette.numInteractions() > 0); // make sure we recorded something
         // check that the response did not come from a recorded cassette
         Assert.assertFalse(Utilities.responseCameFromRecording(response));
 
         // now replay
         vcr.replay();
-        response = (RecordableHttpsURLConnection) fakeDataService.getPostsRawResponse();
+        response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
         Assert.assertNotNull(response);
         // check that the response came from a recorded cassette
         Assert.assertTrue(Utilities.responseCameFromRecording(response));
@@ -149,7 +147,7 @@ public class VCRTest {
         // double check by erasing the cassette and trying to replay
         vcr.erase();
         // should throw an exception because there's no matching interaction now
-        Assert.assertThrows(Exception.class, fakeDataService::getPosts);
+        Assert.assertThrows(Exception.class, fakeDataService::getExchangeRates);
     }
 
     @Test
@@ -174,7 +172,7 @@ public class VCRTest {
         AdvancedSettings advancedSettings = new AdvancedSettings();
         List<String> censoredHeaders = new ArrayList<>();
         censoredHeaders.add("Date");
-        advancedSettings.censors = new Censors(censorString).hideHeaders(censoredHeaders);
+        advancedSettings.censors = new Censors(censorString).censorHeadersByKeys(censoredHeaders);
         advancedSettings.matchRules = new MatchRules().byMethod().byFullUrl().byBody();
 
         VCR vcr = new VCR(advancedSettings);
@@ -189,18 +187,18 @@ public class VCRTest {
 
         // record first
         vcr.record();
-        RecordableURL client = vcr.getHttpUrlConnection(FakeDataService.GET_POSTS_URL);
+        RecordableURL client = vcr.getHttpUrlConnection(FakeDataService.URL);
         FakeDataService.HttpsUrlConnection fakeDataService =
                 new FakeDataService.HttpsUrlConnection(client.openConnectionSecure());
-        FakeDataService.Post[] posts = fakeDataService.getPosts();
+        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
 
         // now replay and confirm that the censor is applied
         vcr.replay();
         // changing the VCR settings won't affect a client after it's been grabbed from the VCR
         // so, we need to re-grab the VCR client and re-create the FakeDataService
-        client = vcr.getHttpUrlConnection(FakeDataService.GET_POSTS_URL);
+        client = vcr.getHttpUrlConnection(FakeDataService.URL);
         fakeDataService = new FakeDataService.HttpsUrlConnection(client.openConnectionSecure());
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getPostsRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
 
         // check that the censor is applied
         Assert.assertNotNull(response);

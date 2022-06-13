@@ -60,26 +60,43 @@ public final class MatchRules {
     /**
      * Add a rule to compare the bodies of the requests.
      *
+     * @param ignoredElements List of body elements to ignore when comparing the requests.
      * @return This MatchRules factory.
      */
-    public MatchRules byBody() {
+    public MatchRules byBody(List<CensorElement> ignoredElements) {
         by((received, recorded) -> {
-            if (received.getBody() == null && recorded.getBody() == null) {
+            String receivedBody = received.getBody();
+            String recordedBody = recorded.getBody();
+
+            if (receivedBody == null && recordedBody == null) {
                 // both have null bodies, so they match
                 return true;
             }
 
-            if (received.getBody() == null || recorded.getBody() == null) {
+            if (receivedBody == null || recordedBody == null) {
                 // one has a null body, so they don't match
                 return false;
             }
 
+            // remove ignored elements from the body
+            receivedBody = Utilities.removeJsonElements(receivedBody, ignoredElements);
+            recordedBody = Utilities.removeJsonElements(recordedBody, ignoredElements);
+
             // convert body to base64string to assist comparison by removing special characters
-            String receivedBody = Tools.toBase64String(received.getBody());
-            String recordedBody = Tools.toBase64String(recorded.getBody());
+            receivedBody = Tools.toBase64String(receivedBody);
+            recordedBody = Tools.toBase64String(recordedBody);
             return receivedBody.equalsIgnoreCase(recordedBody);
         });
         return this;
+    }
+
+    /**
+     * Add a rule to compare the bodies of the requests.
+     *
+     * @return This MatchRules factory.
+     */
+    public MatchRules byBody() {
+        return byBody(null);
     }
 
     /**

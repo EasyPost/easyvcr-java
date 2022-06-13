@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class Statics {
+public abstract class Statics {
     public static final String VIA_RECORDING_HEADER_KEY = "X-Via-EasyVCR-Recording";
     /**
      * Default headers to censor (credential-related headers).

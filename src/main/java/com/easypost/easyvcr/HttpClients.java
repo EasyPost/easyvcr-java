@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
 /**
  * HttpClient singleton for EasyVCR.
  */
-public final class HttpClients {
+public abstract class HttpClients {
 
     /**
      * Get a new client configured to use cassettes.

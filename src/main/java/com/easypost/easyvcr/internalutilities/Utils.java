@@ -9,7 +9,7 @@ import java.util.function.BiPredicate;
 
 import static java.lang.String.format;
 
-public final class Utils {
+public abstract class Utils {
     private static final boolean[] T_CHAR = new boolean[256];
     private static final boolean[] FIELD_V_CHAR = new boolean[256];
 

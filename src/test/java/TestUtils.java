@@ -25,7 +25,7 @@ public class TestUtils {
 
     public static RecordableHttpURLConnection getSimpleHttpURLConnection(String cassetteName, Mode mode, AdvancedSettings advancedSettings)
             throws IOException {
-        return getSimpleHttpURLConnection(FakeDataService.GET_POSTS_URL, cassetteName, mode, advancedSettings);
+        return getSimpleHttpURLConnection(FakeDataService.URL, cassetteName, mode, advancedSettings);
     }
 
     public static RecordableHttpsURLConnection getSimpleHttpsURLConnection(String url, String cassetteName, Mode mode, AdvancedSettings advancedSettings)
@@ -36,7 +36,7 @@ public class TestUtils {
 
     public static RecordableHttpsURLConnection getSimpleHttpsURLConnection(String cassetteName, Mode mode, AdvancedSettings advancedSettings)
             throws IOException {
-        return getSimpleHttpsURLConnection(FakeDataService.GET_POSTS_URL, cassetteName, mode, advancedSettings);
+        return getSimpleHttpsURLConnection(FakeDataService.URL, cassetteName, mode, advancedSettings);
     }
 
     public static VCR getSimpleVCR(Mode mode) {
