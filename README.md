@@ -12,7 +12,7 @@ This can be useful for speeding up your test suite, or for running your tests on
 
 ## How to use EasyVCR
 
-#### Step 1.
+### Step 1
 
 Run your test suite locally against a real HTTP endpoint in recording mode
 
@@ -45,7 +45,7 @@ public class Example {
 
 Real HTTP calls will be made and recorded to the cassette file.
 
-#### Step 2.
+### Step 2
 
 Switch to replay mode:
 
@@ -73,6 +73,7 @@ public class Example {
     }
 }
 ```
+
 Now when tests are run, no real HTTP calls will be made. Instead, the HTTP responses will be replayed from the cassette file.
 
 ### Available modes
