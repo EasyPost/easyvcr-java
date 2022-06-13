@@ -70,9 +70,9 @@ public final class Censors {
      */
     public static Censors strict() {
         Censors censors = new Censors();
-        censors.hideHeaderKeys(Statics.DEFAULT_CREDENTIAL_HEADERS_TO_HIDE);
-        censors.hideBodyElementKeys(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
-        censors.hideQueryParameterKeys(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
+        censors.censorHeadersByKeys(Statics.DEFAULT_CREDENTIAL_HEADERS_TO_HIDE);
+        censors.censorBodyElementsByKeys(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
+        censors.censorQueryParametersByKeys(Statics.DEFAULT_CREDENTIAL_PARAMETERS_TO_HIDE);
         return censors;
     }
 
@@ -139,7 +139,7 @@ public final class Censors {
         for (Map.Entry<String, Object> entry : dictionary.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            if (keyShouldBeCensored(key, elementsToCensor)) {
+            if (elementShouldBeCensored(key, elementsToCensor)) {
                 if (value == null) {
                     // don't need to worry about censoring something that's null
                     // (don't replace null with the censor string)
@@ -213,7 +213,7 @@ public final class Censors {
      * @param elementsToCensor List of censors to compare against.
      * @return True if the value should be censored, false otherwise.
      */
-    private static boolean keyShouldBeCensored(String foundKey, List<CensorElement> elementsToCensor) {
+    private static boolean elementShouldBeCensored(String foundKey, List<CensorElement> elementsToCensor) {
         return elementsToCensor.stream().anyMatch(queryElement -> queryElement.matches(foundKey));
     }
 
@@ -225,8 +225,8 @@ public final class Censors {
      * @param bodyElementsToCensor The body elements to censor.
      * @return Censored string representation of request body.
      */
-    public static String censorBodyParameters(String body, String censorText,
-                                              List<CensorElement> bodyElementsToCensor) {
+    public static String applyBodyParameterCensors(String body, String censorText,
+                                                   List<CensorElement> bodyElementsToCensor) {
         if (body == null || body.length() == 0) {
             // short circuit if body is null or empty
             return body;
@@ -249,8 +249,8 @@ public final class Censors {
      * @param headersToCensor The headers to censor.
      * @return Censored map of headers.
      */
-    public static Map<String, List<String>> censorHeaders(Map<String, List<String>> headers, String censorText,
-                                                          List<CensorElement> headersToCensor) {
+    public static Map<String, List<String>> applyHeaderCensors(Map<String, List<String>> headers, String censorText,
+                                                               List<CensorElement> headersToCensor) {
         if (headers == null || headers.size() == 0) {
             // short circuit if there are no headers to censor
             return headers;
@@ -268,7 +268,7 @@ public final class Censors {
             if (headerKey == null) {
                 continue;
             }
-            if (keyShouldBeCensored(headerKey, headersToCensor)) {
+            if (elementShouldBeCensored(headerKey, headersToCensor)) {
                 headersCopy.put(headerKey, Collections.singletonList(censorText));
             }
         }
@@ -284,7 +284,8 @@ public final class Censors {
      * @param queryParamsToCensor The query parameters to censor.
      * @return Censored URL string.
      */
-    public static String censorQueryParameters(String url, String censorText, List<CensorElement> queryParamsToCensor) {
+    public static String applyQueryParameterCensors(String url, String censorText,
+                                                    List<CensorElement> queryParamsToCensor) {
         if (url == null || url.length() == 0) {
             // short circuit if url is null
             return url;
@@ -304,7 +305,7 @@ public final class Censors {
 
         List<String> queryKeys = new ArrayList<>(queryParameters.keySet());
         for (String queryKey : queryKeys) {
-            if (keyShouldBeCensored(queryKey, queryParamsToCensor)) {
+            if (elementShouldBeCensored(queryKey, queryParamsToCensor)) {
                 queryParameters.put(queryKey, censorText);
             }
         }
@@ -325,19 +326,19 @@ public final class Censors {
      * @param elements List of body elements to censor.
      * @return This Censors factory.
      */
-    public Censors hideBodyElements(List<CensorElement> elements) {
+    public Censors censorBodyElements(List<CensorElement> elements) {
         bodyElementsToCensor.addAll(elements);
         return this;
     }
 
     /**
-     * Add a rule to censor specified body elements.
+     * Add a rule to censor specified body elements by their keys.
      *
      * @param elementKeys   Keys of body elements to censor.
      * @param caseSensitive Whether to use case-sensitive censoring.
      * @return This Censors factory.
      */
-    public Censors hideBodyElementKeys(List<String> elementKeys, boolean caseSensitive) {
+    public Censors censorBodyElementsByKeys(List<String> elementKeys, boolean caseSensitive) {
         for (String elementKey : elementKeys) {
             bodyElementsToCensor.add(new CensorElement(elementKey, caseSensitive));
         }
@@ -345,36 +346,36 @@ public final class Censors {
     }
 
     /**
-     * Add a rule to censor specified body elements.
+     * Add a rule to censor specified body elements by their keys.
      *
      * @param elementKeys Keys of body elementKeys to censor.
      * @return This Censors factory.
      */
-    public Censors hideBodyElementKeys(List<String> elementKeys) {
-        return hideBodyElementKeys(elementKeys, false);
+    public Censors censorBodyElementsByKeys(List<String> elementKeys) {
+        return censorBodyElementsByKeys(elementKeys, false);
     }
 
     /**
-     * Add a rule to censor specified header keys.
+     * Add a rule to censor specified headers.
      * Note: This will censor the header keys in both the request and response.
      *
      * @param headers List of Headers to censor.
      * @return This Censors factory.
      */
-    public Censors hideHeaders(List<CensorElement> headers) {
+    public Censors censorHeaders(List<CensorElement> headers) {
         headersToCensor.addAll(headers);
         return this;
     }
 
     /**
-     * Add a rule to censor specified header keys.
+     * Add a rule to censor specified headers by their keys.
      * Note: This will censor the header keys in both the request and response.
      *
      * @param headerKeys    Keys of headers to censor.
      * @param caseSensitive Whether to use case-sensitive censoring.
      * @return This Censors factory.
      */
-    public Censors hideHeaderKeys(List<String> headerKeys, boolean caseSensitive) {
+    public Censors censorHeadersByKeys(List<String> headerKeys, boolean caseSensitive) {
         for (String headerKey : headerKeys) {
             headersToCensor.add(new CensorElement(headerKey, caseSensitive));
         }
@@ -382,14 +383,14 @@ public final class Censors {
     }
 
     /**
-     * Add a rule to censor specified header keys.
+     * Add a rule to censor specified headers by their keys.
      * Note: This will censor the header keys in both the request and response.
      *
      * @param headerKeys Keys of headers to censor.
      * @return This Censors factory.
      */
-    public Censors hideHeaderKeys(List<String> headerKeys) {
-        return hideHeaderKeys(headerKeys, false);
+    public Censors censorHeadersByKeys(List<String> headerKeys) {
+        return censorHeadersByKeys(headerKeys, false);
     }
 
     /**
@@ -398,19 +399,19 @@ public final class Censors {
      * @param elements List of QueryElements to censor.
      * @return This Censors factory.
      */
-    public Censors hideQueryParameters(List<CensorElement> elements) {
+    public Censors censorQueryParameters(List<CensorElement> elements) {
         queryParamsToCensor.addAll(elements);
         return this;
     }
 
     /**
-     * Add a rule to censor specified query parameters.
+     * Add a rule to censor specified query parameters by their keys.
      *
      * @param parameterKeys Keys of query parameters to censor.
      * @param caseSensitive Whether to use case-sensitive censoring.
      * @return This Censors factory.
      */
-    public Censors hideQueryParameterKeys(List<String> parameterKeys, boolean caseSensitive) {
+    public Censors censorQueryParametersByKeys(List<String> parameterKeys, boolean caseSensitive) {
         for (String parameterKey : parameterKeys) {
             queryParamsToCensor.add(new CensorElement(parameterKey, caseSensitive));
         }
@@ -418,13 +419,13 @@ public final class Censors {
     }
 
     /**
-     * Add a rule to censor specified query parameters.
+     * Add a rule to censor specified query parameters by their keys.
      *
      * @param parameterKeys Keys of query parameters to censor.
      * @return This Censors factory.
      */
-    public Censors hideQueryParameterKeys(List<String> parameterKeys) {
-        return hideQueryParameterKeys(parameterKeys, false);
+    public Censors censorQueryParametersByKeys(List<String> parameterKeys) {
+        return censorQueryParametersByKeys(parameterKeys, false);
     }
 
     /**
@@ -433,8 +434,8 @@ public final class Censors {
      * @param body String representation of request body to apply censors to.
      * @return Censored string representation of request body.
      */
-    public String censorBodyParameters(String body) {
-        return censorBodyParameters(body, this.censorText, this.bodyElementsToCensor);
+    public String applyBodyParameterCensors(String body) {
+        return applyBodyParameterCensors(body, this.censorText, this.bodyElementsToCensor);
     }
 
     /**
@@ -443,8 +444,8 @@ public final class Censors {
      * @param headers Map of headers to apply censors to.
      * @return Censored map of headers.
      */
-    public Map<String, List<String>> censorHeaders(Map<String, List<String>> headers) {
-        return censorHeaders(headers, this.censorText, this.headersToCensor);
+    public Map<String, List<String>> applyHeaderCensors(Map<String, List<String>> headers) {
+        return applyHeaderCensors(headers, this.censorText, this.headersToCensor);
     }
 
     /**
@@ -453,7 +454,7 @@ public final class Censors {
      * @param url Full URL string to apply censors to.
      * @return Censored URL string.
      */
-    public String censorQueryParameters(String url) {
-        return censorQueryParameters(url, this.censorText, this.queryParamsToCensor);
+    public String applyQueryParameterCensors(String url) {
+        return applyQueryParameterCensors(url, this.censorText, this.queryParamsToCensor);
     }
 }

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Next Release
+- Improvements to censoring
+  - Ability to define censored elements individually, with per-element case sensitivity
+- Improvements to matching
+  - Ability to ignore certain elements when matching by body
+
 ## v0.2.0 (2022-05-31)
 
 - Enhance censoring to work on nested data

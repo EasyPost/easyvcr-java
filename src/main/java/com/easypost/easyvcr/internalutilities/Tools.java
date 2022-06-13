@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Internal tools for EasyVCR.
  */
-public class Tools {
+public abstract class Tools {
     /**
      * Get a File object from a path.
      *

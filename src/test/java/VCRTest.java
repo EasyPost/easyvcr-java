@@ -172,7 +172,7 @@ public class VCRTest {
         AdvancedSettings advancedSettings = new AdvancedSettings();
         List<String> censoredHeaders = new ArrayList<>();
         censoredHeaders.add("Date");
-        advancedSettings.censors = new Censors(censorString).hideHeaderKeys(censoredHeaders);
+        advancedSettings.censors = new Censors(censorString).censorHeadersByKeys(censoredHeaders);
         advancedSettings.matchRules = new MatchRules().byMethod().byFullUrl().byBody();
 
         VCR vcr = new VCR(advancedSettings);

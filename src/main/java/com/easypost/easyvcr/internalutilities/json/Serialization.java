@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 /**
  * JSON de/serialization utilities.
  */
-public final class Serialization {
+public abstract class Serialization {
     /**
      * Convert a JSON string to an object.
      *

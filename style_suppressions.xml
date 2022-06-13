@@ -5,12 +5,27 @@
         "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-    <!-- TODO: Include Test files -->
     <!-- Don't do any CheckStyle checks on any Test files. -->
     <suppress checks="[a-zA-Z0-9]*"
               files="src[\\/]test[\\/].*"/>
     <suppress checks="[a-zA-Z0-9]*"
               files=".*Test.java"/>
+    <!-- Disabling picky CheckStyle checks that don't understand how this package is structured. -->
+    <suppress checks="VisibilityModifier"
+              files="src[\\/]main[\\/].*"/>
+    <suppress checks="JavadocPackage"
+              files="src[\\/]main[\\/].*"/>
+    <suppress checks="ParameterNumber"
+              files="src[\\/]main[\\/].*"/>
+    <!--- Need to suppress below checks due to overridden HttpUrlConnection class code -->
+    <suppress checks="MagicNumber"
+              files="src[\\/]main[\\/].*"/>
+    <suppress checks="ParameterName"
+              files="src[\\/]main[\\/].*"/>
+    <suppress checks="MethodLength"
+              files="src[\\/]main[\\/].*"/>
+    <suppress checks="UnusedImports"
+              files="src[\\/]main[\\/].*"/>
     <!-- Don't do any CheckStyle checks on any non-Java files. -->
     <suppress files=".+\.(?:txt|xml|csv|sh|thrift|html|sql|eot|ttf|woff|css|png)$"
               checks=".*"/>

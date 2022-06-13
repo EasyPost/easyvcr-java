@@ -61,7 +61,7 @@ public class HttpUrlConnectionTest {
 
         List<String> bodyCensors = new ArrayList<>();
         bodyCensors.add("Date");
-        advancedSettings.censors = new Censors("*****").hideBodyElementKeys(bodyCensors);
+        advancedSettings.censors = new Censors("*****").censorBodyElementsByKeys(bodyCensors);
 
         advancedSettings.matchRules = new MatchRules().byMethod().byBody().byFullUrl();
         RecordableHttpsURLConnection connection =
@@ -172,7 +172,7 @@ public class HttpUrlConnectionTest {
         String censorString = "censored-by-test";
         List<String> headers = new ArrayList<>();
         headers.add("Date");
-        Censors censors = new Censors(censorString).hideHeaderKeys(headers);
+        Censors censors = new Censors(censorString).censorHeadersByKeys(headers);
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
         advancedSettings.censors = censors;
@@ -277,8 +277,8 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
-    public void testIgnoreElements() throws URISyntaxException, IOException {
-        Cassette cassette = TestUtils.getCassette("test_ignore_elements");
+    public void testIgnoreElementsFailMatch() throws URISyntaxException, IOException {
+        Cassette cassette = TestUtils.getCassette("test_ignore_elements_fail_match");
         cassette.erase(); // Erase cassette before recording
 
         String bodyData1 = "{'name': 'Upendra', 'job': 'Programmer'}";
@@ -323,9 +323,34 @@ public class HttpUrlConnectionTest {
         // should fail since we're strictly in replay mode and there's no exact match
         int statusCode = connection.getResponseCode();
         Assert.assertEquals(0, statusCode);
+    }
+
+    @Test
+    public void testIgnoreElementsPassMatch() throws URISyntaxException, IOException {
+        Cassette cassette = TestUtils.getCassette("test_ignore_elements_pass_match");
+        cassette.erase(); // Erase cassette before recording
+
+        String bodyData1 = "{'name': 'Upendra', 'job': 'Programmer'}";
+        String bodyData2 = "{'name': 'NewName', 'job': 'Programmer'}";
+
+        // record baseline request first
+        RecordableHttpsURLConnection connection = HttpClients.newHttpsURLConnection(FakeDataService.URL, cassette, Mode.Record);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        // use bodyData1 to make request
+        OutputStream output = null;
+        try {
+            output = connection.getOutputStream();
+            output.write(bodyData1.getBytes(StandardCharsets.UTF_8));
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+        connection.connect();
 
         // try to replay with slightly different data, but ignoring the differences
-        advancedSettings = new AdvancedSettings();
+        AdvancedSettings advancedSettings = new AdvancedSettings();
         // ignore the element that is different
         List<CensorElement> ignoredElements = new ArrayList<CensorElement>() {{
             add(new CensorElement("name", false));
@@ -348,7 +373,7 @@ public class HttpUrlConnectionTest {
         connection.connect();
 
         // should not fail since we're ignoring the body elements that differ
-        statusCode = connection.getResponseCode();
+        int statusCode = connection.getResponseCode();
         Assert.assertNotEquals(0, statusCode);
     }
 }

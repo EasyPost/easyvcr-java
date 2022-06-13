@@ -5,7 +5,7 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 
-public class Utilities {
+public abstract class Utilities {
 
     /**
      * Check if the connection came from an EasyVCR recording.
