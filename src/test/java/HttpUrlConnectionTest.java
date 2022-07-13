@@ -104,7 +104,7 @@ public class HttpUrlConnectionTest {
         Cassette cassette = TestUtils.getCassette("test_erase");
 
         // record something to the cassette
-        FakeDataService.ExchangeRates exchangeRates = GetExchangeRatesRequest(cassette, Mode.Record);
+        GetExchangeRatesRequest(cassette, Mode.Record);
         Assert.assertTrue(cassette.numInteractions() > 0);
 
         // erase the cassette
@@ -182,7 +182,7 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record, advancedSettings);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        Object ignore = fakeDataService.getExchangeRatesRawResponse();
+        fakeDataService.getExchangeRatesRawResponse();
 
         // now replay cassette
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
@@ -208,7 +208,7 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        Object ignore = fakeDataService.getExchangeRatesRawResponse();
+        fakeDataService.getExchangeRatesRawResponse();
 
         // replay cassette with default match rules, should find a match
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
@@ -243,7 +243,7 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        Object ignore = fakeDataService.getExchangeRates();
+        fakeDataService.getExchangeRatesRawResponse();
 
         // baseline - how much time does it take to replay the cassette?
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,

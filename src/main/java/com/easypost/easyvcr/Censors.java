@@ -17,6 +17,7 @@ import java.util.Map;
 /**
  * Censoring capabilities for EasyVCR.
  */
+@SuppressWarnings("unchecked")
 public final class Censors {
     /**
      * The body elements to censor.

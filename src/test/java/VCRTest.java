@@ -88,7 +88,6 @@ public class VCRTest {
 
     @Test
     public void testMode() {
-        Cassette cassette = TestUtils.getCassette("test_vcr_mode");
         VCR vcr = TestUtils.getSimpleVCR(Mode.Bypass);
         Assert.assertEquals(Mode.Bypass, vcr.getMode());
         vcr.record();
@@ -190,7 +189,7 @@ public class VCRTest {
         RecordableURL client = vcr.getHttpUrlConnection(FakeDataService.URL);
         FakeDataService.HttpsUrlConnection fakeDataService =
                 new FakeDataService.HttpsUrlConnection(client.openConnectionSecure());
-        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
+        fakeDataService.getExchangeRates();
 
         // now replay and confirm that the censor is applied
         vcr.replay();

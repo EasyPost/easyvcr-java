@@ -172,26 +172,6 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
     }
 
     /**
-     * Get a boolean from the cache.
-     *
-     * @param getter       Function to get the boolean from the cache.
-     * @param defaultValue The default value to return if the boolean is not in the cache.
-     * @return The boolean from the cache.
-     * @throws VCRException If an error occurs.
-     */
-    private boolean getBooleanElementFromCache(Function<HttpInteraction, Boolean> getter, boolean defaultValue)
-            throws VCRException {
-        if (this.cachedInteraction == null) {
-            return defaultValue;
-        }
-        try {
-            return getter.apply(this.cachedInteraction);
-        } catch (Exception e) {
-            throw new VCRException("Error getting boolean element from cache");
-        }
-    }
-
-    /**
      * Get an integer from the cache.
      *
      * @param getter       Function to get the integer from the cache.
@@ -1244,7 +1224,6 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         }
     }
 
-    @SuppressWarnings ("deprecation")
     @Override
     //CHECKSTYLE.OFF: ParameterName
     public long getHeaderFieldDate(String name, long Default) {
@@ -1379,6 +1358,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @since 1.3
      */
     @Override
+    @SuppressWarnings("rawtypes")
     public Object getContent(Class[] classes) throws IOException {
         // not in cassette, go to real connection
         return this.connection.getContent(classes);

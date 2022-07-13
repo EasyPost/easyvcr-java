@@ -13,9 +13,6 @@ public abstract class Utils {
     private static final boolean[] T_CHAR = new boolean[256];
     private static final boolean[] FIELD_V_CHAR = new boolean[256];
 
-    private static final String HEADER_CONNECTION = "Connection";
-    private static final String HEADER_UPGRADE = "Upgrade";
-
     private static final Set<String> DISALLOWED_HEADERS_SET = getDisallowedHeaders();
 
     public static final BiPredicate<String, String> ALLOWED_HEADERS =
@@ -47,17 +44,7 @@ public abstract class Utils {
         headerKeys.add("upgrade");
         headers.addAll(headerKeys);
 
-        String v = null;
-        if (v != null) {
-            // any headers found are removed from set.
-            String[] tokens = v.trim().split(",");
-            for (String token : tokens) {
-                headers.remove(token);
-            }
-            return Collections.unmodifiableSet(headers);
-        } else {
-            return Collections.unmodifiableSet(headers);
-        }
+        return Collections.unmodifiableSet(headers);
     }
 
     /**
