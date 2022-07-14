@@ -25,6 +25,7 @@ import static com.easypost.easyvcr.internalutilities.Tools.createInputStream;
 /**
  * Represents an HTTP response tracked by EasyVCR.
  */
+@SuppressWarnings("deprecation")
 public final class Response extends HttpElement {
     /**
      * The body of the response.
