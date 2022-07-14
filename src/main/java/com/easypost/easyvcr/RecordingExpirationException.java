@@ -1,6 +1,6 @@
 package com.easypost.easyvcr;
 
-public final class RecordingExpirationException extends Exception{
+public final class RecordingExpirationException extends Exception {
     /**
      * Constructs a new RecordingExpirationException with the specified detail message.
      *
