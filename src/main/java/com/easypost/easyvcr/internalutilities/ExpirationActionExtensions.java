@@ -14,7 +14,7 @@ public abstract class ExpirationActionExtensions {
      */
     public static void checkCompatibleSettings(ExpirationActions action, Mode mode)
             throws RecordingExpirationException {
-        if (action == ExpirationActions.Record_Again && mode == Mode.Replay) {
+        if (action == ExpirationActions.RecordAgain && mode == Mode.Replay) {
             throw new RecordingExpirationException(
                     "Cannot use the Record_Again expiration action in combination with Replay mode.");
         }

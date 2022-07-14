@@ -33,7 +33,7 @@ public class TimeFrame {
      * Enums for common time frames.
      */
     private enum CommonTimeFrames {
-        FOREVER, NEVER
+        Forever, Never
     }
 
     /**
@@ -90,9 +90,9 @@ public class TimeFrame {
      */
     private Instant timePlusFrame(Instant fromTime) {
         switch (commonTimeFrame) {
-            case FOREVER:
+            case Forever:
                 return Instant.MAX;  // will always been in the future
-            case NEVER:
+            case Never:
                 return Instant.MIN; // will always been in the past
             default:
                 return fromTime.plus(days, ChronoUnit.DAYS).plus(hours, ChronoUnit.HOURS)
@@ -106,7 +106,7 @@ public class TimeFrame {
      * @return TimeFrame that represents "forever".
      */
     public static TimeFrame forever() {
-        return new TimeFrame(CommonTimeFrames.FOREVER);
+        return new TimeFrame(CommonTimeFrames.Forever);
     }
 
     /**
@@ -115,7 +115,7 @@ public class TimeFrame {
      * @return TimeFrame that represents "never".
      */
     public static TimeFrame never() {
-        return new TimeFrame(CommonTimeFrames.NEVER);
+        return new TimeFrame(CommonTimeFrames.Never);
     }
 
     /**

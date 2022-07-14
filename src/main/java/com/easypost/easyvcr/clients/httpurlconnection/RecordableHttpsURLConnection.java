@@ -257,9 +257,9 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
                         case Warn:
                             this.logger.warning("Matching interaction is expired.");
                             break;
-                        case Throw_Exception:
+                        case ThrowException:
                             throw new RecordingExpirationException("Matching interaction is expired.");
-                        case Record_Again:
+                        case RecordAgain:
                             // we should never get here, but just in case.
                             throw new RecordingExpirationException(
                                     "Cannot use the Record_Again expiration action in combination with Replay mode.");
@@ -272,9 +272,9 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
                         case Warn:
                             this.logger.warning("Matching interaction is expired.");
                             break;
-                        case Throw_Exception:
+                        case ThrowException:
                             throw new RecordingExpirationException("Matching interaction is expired.");
-                        case Record_Again:
+                        case RecordAgain:
                             // will trigger a re-recording of the interaction
                             return false;
                         default:

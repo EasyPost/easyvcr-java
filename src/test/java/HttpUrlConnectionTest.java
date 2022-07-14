@@ -402,7 +402,7 @@ public class HttpUrlConnectionTest {
         // replay cassette with custom expiration rules, should not find a match because recording is expired (throw exception)
         AdvancedSettings advancedSettings = new AdvancedSettings();
         advancedSettings.timeFrame = TimeFrame.never();
-        advancedSettings.whenExpired = ExpirationActions.Throw_Exception;  // throw exception when recording is expired
+        advancedSettings.whenExpired = ExpirationActions.ThrowException;  // throw exception when recording is expired
         Thread.sleep(1000); // allow 1 second to lapse to ensure recording is now "expired"
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                 FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
@@ -414,7 +414,7 @@ public class HttpUrlConnectionTest {
         // replay cassette with bad expiration rules, should throw an exception because settings are bad
         advancedSettings = new AdvancedSettings();
         advancedSettings.timeFrame = TimeFrame.never();
-        advancedSettings.whenExpired = ExpirationActions.Record_Again;  // invalid settings for replay mode, should throw exception
+        advancedSettings.whenExpired = ExpirationActions.RecordAgain;  // invalid settings for replay mode, should throw exception
         AdvancedSettings finalAdvancedSettings = advancedSettings;
         Assert.assertThrows(RecordingExpirationException.class, () -> HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                 FakeDataService.URL, cassette, Mode.Replay, finalAdvancedSettings));

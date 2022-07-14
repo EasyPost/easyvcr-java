@@ -180,10 +180,12 @@ public class Example {
         Cassette cassette = new Cassette("path/to/cassettes", "my_cassette");
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
-        advancedSettings.timeFrame = new TimeFrame(30, 0, 0, 0); // Any matching request is considered expired if it was recorded more than 30 days ago
+        advancedSettings.timeFrame = new TimeFrame(30, 0, 0,
+                0); // Any matching request is considered expired if it was recorded more than 30 days ago
         // or
-        advancedSettings.timeFrame = TimeFrame.months12(); // Any matching request is considered expired if it was recorded more than a year ago
-        advancedSettings.whenExpired = ExpirationActions.Throw_Exception; // Throw exception if the recording is expired
+        advancedSettings.timeFrame =
+                TimeFrame.months12(); // Any matching request is considered expired if it was recorded more than a year ago
+        advancedSettings.whenExpired = ExpirationActions.ThrowException; // Throw exception if the recording is expired
 
         RecordableURL recordableURL =
                 new RecordableURL("https://www.example.com", cassette, Mode.Replay, advancedSettings);

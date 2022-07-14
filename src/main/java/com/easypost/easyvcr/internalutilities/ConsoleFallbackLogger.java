@@ -4,7 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A logger that, if there's no proper logger, writes to the console instead.
+ * A logger wrapper that, if there's no proper internal logger, writes to the console instead.
  */
 public final class ConsoleFallbackLogger {
     private final Logger logger;

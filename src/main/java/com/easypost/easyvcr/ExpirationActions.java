@@ -11,9 +11,9 @@ public enum ExpirationActions {
     /**
      * Throw an exception that the recorded interaction is expired.
      */
-    Throw_Exception,
+    ThrowException,
     /**
      * Automatically re-record the recorded interaction. This cannot be used with {@link Mode#Replay}.
      */
-    Record_Again,
+    RecordAgain,
 }
