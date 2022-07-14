@@ -2,10 +2,13 @@ import com.easypost.easyvcr.AdvancedSettings;
 import com.easypost.easyvcr.Cassette;
 import com.easypost.easyvcr.CensorElement;
 import com.easypost.easyvcr.Censors;
+import com.easypost.easyvcr.ExpirationActions;
 import com.easypost.easyvcr.HttpClientType;
 import com.easypost.easyvcr.HttpClients;
 import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
+import com.easypost.easyvcr.RecordingExpirationException;
+import com.easypost.easyvcr.TimeFrame;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.google.gson.JsonParseException;
 import org.junit.Assert;
@@ -56,7 +59,7 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
-    public void testNonJsonDataWithCensors() throws IOException {
+    public void testNonJsonDataWithCensors() throws Exception {
         AdvancedSettings advancedSettings = new AdvancedSettings();
 
         List<String> bodyCensors = new ArrayList<>();
@@ -82,7 +85,7 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
-    public void testClient() throws IOException {
+    public void testClient() throws Exception {
         RecordableHttpsURLConnection connection =
                 TestUtils.getSimpleHttpsURLConnection("https://www.google.com", "test_client", Mode.Bypass, null);
 
@@ -90,7 +93,7 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
-    public void testFakeDataServiceClient() throws IOException {
+    public void testFakeDataServiceClient() throws Exception {
         RecordableHttpsURLConnection connection =
                 TestUtils.getSimpleHttpsURLConnection("https://www.google.com", "test_client", Mode.Bypass, null);
 
@@ -277,7 +280,7 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
-    public void testIgnoreElementsFailMatch() throws URISyntaxException, IOException {
+    public void testIgnoreElementsFailMatch() throws URISyntaxException, IOException, RecordingExpirationException {
         Cassette cassette = TestUtils.getCassette("test_ignore_elements_fail_match");
         cassette.erase(); // Erase cassette before recording
 
@@ -326,7 +329,7 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
-    public void testIgnoreElementsPassMatch() throws URISyntaxException, IOException {
+    public void testIgnoreElementsPassMatch() throws URISyntaxException, IOException, RecordingExpirationException {
         Cassette cassette = TestUtils.getCassette("test_ignore_elements_pass_match");
         cassette.erase(); // Erase cassette before recording
 
@@ -375,5 +378,45 @@ public class HttpUrlConnectionTest {
         // should not fail since we're ignoring the body elements that differ
         int statusCode = connection.getResponseCode();
         Assert.assertNotEquals(0, statusCode);
+    }
+
+    @Test
+    public void testExpirationSettings() throws Exception {
+        Cassette cassette = TestUtils.getCassette("test_expiration_settings");
+        cassette.erase(); // Erase cassette before recording
+
+        // record cassette first
+        RecordableHttpsURLConnection connection =
+                (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                        FakeDataService.URL, cassette, Mode.Record);
+        FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        fakeDataService.getExchangeRatesRawResponse();
+
+        // replay cassette with default expiration rules, should find a match
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay);
+        fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        Assert.assertNotNull(response);
+
+        // replay cassette with custom expiration rules, should not find a match because recording is expired (throw exception)
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.timeFrame = TimeFrame.never();
+        advancedSettings.whenExpired = ExpirationActions.Throw_Exception;  // throw exception when recording is expired
+        Thread.sleep(1000); // allow 1 second to lapse to ensure recording is now "expired"
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
+        fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        FakeDataService.HttpsUrlConnection finalFakeDataService = fakeDataService;
+        // this throws a RuntimeException rather than a RecordingExpirationException because the exceptions are coalesced internally
+        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getExchangeRates());
+
+        // replay cassette with bad expiration rules, should throw an exception because settings are bad
+        advancedSettings = new AdvancedSettings();
+        advancedSettings.timeFrame = TimeFrame.never();
+        advancedSettings.whenExpired = ExpirationActions.Record_Again;  // invalid settings for replay mode, should throw exception
+        AdvancedSettings finalAdvancedSettings = advancedSettings;
+        Assert.assertThrows(RecordingExpirationException.class, () -> HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay, finalAdvancedSettings));
     }
 }

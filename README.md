@@ -159,6 +159,40 @@ public class Example {
 }
 ```
 
+### Expiration
+
+Set expiration dates for recorded requests, and decide what to do with expired recordings.
+
+**Default**: *No expiration*
+
+```java
+import com.easypost.easyvcr;
+import com.easypost.easyvcr.AdvancedSettings;
+import com.easypost.easyvcr.Cassette;
+import com.easypost.easyvcr.ExpirationActions;
+import com.easypost.easyvcr.Mode;
+import com.easypost.easyvcr.TimeFrame;
+import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
+import com.easypost.easyvcr.clients.httpurlconnection.RecordableURL;
+
+public class Example {
+    public static void main(String[] args) {
+        Cassette cassette = new Cassette("path/to/cassettes", "my_cassette");
+
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.timeFrame = new TimeFrame(30, 0, 0, 0); // Any matching request is considered expired if it was recorded more than 30 days ago
+        // or
+        advancedSettings.timeFrame = TimeFrame.months12(); // Any matching request is considered expired if it was recorded more than a year ago
+        advancedSettings.whenExpired = ExpirationActions.Throw_Exception; // Throw exception if the recording is expired
+
+        RecordableURL recordableURL =
+                new RecordableURL("https://www.example.com", cassette, Mode.Replay, advancedSettings);
+
+        RecordableHttpsURLConnection connection = recordableURL.openConnectionSecure();
+    }
+}
+```
+
 ### Matching
 
 Customize how a recorded request is determined to be a match to the current request.
@@ -183,6 +217,35 @@ public class Example {
         // or
         advancedSettings.matchRules = MatchRules.strict(); // use the built-in strict matching mode (matches by method, full URL and request body; useful for POST/PATCH/PUT requests)
         
+        RecordableURL recordableURL =
+                new RecordableURL("https://www.example.com", cassette, Mode.Replay, advancedSettings);
+
+        RecordableHttpsURLConnection connection = recordableURL.openConnectionSecure();
+    }
+}
+```
+
+### Logging
+
+Have EasyVCR integrate with your custom logger to log warnings and errors.
+
+**Default**: *Logs to console*
+
+```java
+import com.easypost.easyvcr;
+import com.easypost.easyvcr.AdvancedSettings;
+import com.easypost.easyvcr.Cassette;
+import com.easypost.easyvcr.MatchRules;
+import com.easypost.easyvcr.Mode;
+import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
+import com.easypost.easyvcr.clients.httpurlconnection.RecordableURL;
+
+public class Example {
+    public static void main(String[] args) {
+        Cassette cassette = new Cassette("path/to/cassettes", "my_cassette");
+
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.logger = new MyCustomLogger(); // Have EasyVCR use your custom logger when making log entries
         RecordableURL recordableURL =
                 new RecordableURL("https://www.example.com", cassette, Mode.Replay, advancedSettings);
 

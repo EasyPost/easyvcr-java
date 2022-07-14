@@ -26,7 +26,8 @@ public abstract class HttpClients {
      * @throws IOException        If there is an error creating the client.
      */
     public static Object newClient(HttpClientType type, String url, Cassette cassette, Mode mode,
-                                   AdvancedSettings advancedSettings) throws URISyntaxException, IOException {
+                                   AdvancedSettings advancedSettings)
+            throws URISyntaxException, IOException, RecordingExpirationException {
         switch (type) {
             case HttpUrlConnection:
                 return newHttpURLConnection(url, cassette, mode, advancedSettings);
@@ -49,7 +50,7 @@ public abstract class HttpClients {
      * @throws IOException        If there is an error creating the client.
      */
     public static Object newClient(HttpClientType type, String url, Cassette cassette, Mode mode)
-            throws URISyntaxException, IOException {
+            throws URISyntaxException, IOException, RecordingExpirationException {
         return newClient(type, url, cassette, mode, null);
     }
 
@@ -80,7 +81,7 @@ public abstract class HttpClients {
      */
     public static RecordableHttpURLConnection newHttpURLConnection(String url, Cassette cassette, Mode mode,
                                                                    AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         return newRecordableURL(url, cassette, mode, advancedSettings).openConnection();
     }
 
@@ -94,7 +95,7 @@ public abstract class HttpClients {
      * @throws IOException If there is an error creating the client.
      */
     public static RecordableHttpURLConnection newHttpURLConnection(String url, Cassette cassette, Mode mode)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         return newRecordableURL(url, cassette, mode, null).openConnection();
     }
 
@@ -110,7 +111,7 @@ public abstract class HttpClients {
      */
     public static RecordableHttpsURLConnection newHttpsURLConnection(String url, Cassette cassette, Mode mode,
                                                                      AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         return newRecordableURL(url, cassette, mode, advancedSettings).openConnectionSecure();
     }
 
@@ -124,7 +125,7 @@ public abstract class HttpClients {
      * @throws IOException If there is an error creating the client.
      */
     public static RecordableHttpsURLConnection newHttpsURLConnection(String url, Cassette cassette, Mode mode)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         return newRecordableURL(url, cassette, mode, null).openConnectionSecure();
     }
 }
