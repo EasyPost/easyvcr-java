@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.SocketPermission;
@@ -358,7 +359,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache(); // can't set anything after connecting, so might as well build the cache now
             // will establish connection as a result of caching, so need to disconnect afterwards
             this.connection.disconnect();
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -394,7 +395,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache(
                     (interaction) -> interaction.getResponse().getHeaders().keySet().toArray()[n].toString(), null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -526,7 +527,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache(
                     (interaction) -> interaction.getResponse().getHeaders().values().toArray()[n].toString(), null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -581,7 +582,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getRequest().getMethod(), null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -637,7 +638,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getIntegerElementFromCache((interaction) -> interaction.getResponse().getStatus().getCode(), 0);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -664,7 +665,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getResponse().getStatus().getMessage(), null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -817,7 +818,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
                 throw new IllegalStateException("Could not load URL from cache");
             }
             return new URL(urlString);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException | MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -879,7 +880,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getResponse().getHeaders().get(name).get(0),
                     null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -905,7 +906,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
                 return Collections.emptyMap();
             }
             return cachedInteraction.getResponse().getHeaders();
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -964,7 +965,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getObjectElementFromCache((interaction) -> interaction.getResponse().getBody(), null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -1241,7 +1242,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getRequest().getHeaders().get(key).toString(),
                     null);
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -1272,7 +1273,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return createInputStream(this.cachedInteraction.getResponse().getBody());
-        } catch (Exception e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
