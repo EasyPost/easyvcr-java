@@ -1,6 +1,7 @@
 import com.easypost.easyvcr.AdvancedSettings;
 import com.easypost.easyvcr.Cassette;
 import com.easypost.easyvcr.Mode;
+import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.VCR;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpURLConnection;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
@@ -18,24 +19,24 @@ public class TestUtils {
     }
 
     public static RecordableHttpURLConnection getSimpleHttpURLConnection(String url, String cassetteName, Mode mode, AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         Cassette cassette = getCassette(cassetteName);
         return new RecordableURL(new URL(url), cassette, mode, advancedSettings).openConnection();
     }
 
     public static RecordableHttpURLConnection getSimpleHttpURLConnection(String cassetteName, Mode mode, AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         return getSimpleHttpURLConnection(FakeDataService.URL, cassetteName, mode, advancedSettings);
     }
 
     public static RecordableHttpsURLConnection getSimpleHttpsURLConnection(String url, String cassetteName, Mode mode, AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         Cassette cassette = getCassette(cassetteName);
         return new RecordableURL(new URL(url), cassette, mode, advancedSettings).openConnectionSecure();
     }
 
     public static RecordableHttpsURLConnection getSimpleHttpsURLConnection(String cassetteName, Mode mode, AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         return getSimpleHttpsURLConnection(FakeDataService.URL, cassetteName, mode, advancedSettings);
     }
 

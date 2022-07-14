@@ -3,8 +3,11 @@ package com.easypost.easyvcr.clients.httpurlconnection;
 import com.easypost.easyvcr.AdvancedSettings;
 import com.easypost.easyvcr.Cassette;
 import com.easypost.easyvcr.Mode;
+import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.VCRException;
 import com.easypost.easyvcr.interactionconverters.HttpUrlConnectionInteractionConverter;
+import com.easypost.easyvcr.internalutilities.ConsoleFallbackLogger;
+import com.easypost.easyvcr.internalutilities.ExpirationActionExtensions;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
 import com.easypost.easyvcr.requestelements.Request;
 
@@ -66,6 +69,11 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
     private HttpInteraction cachedInteraction;
 
     /**
+     * Logger to use for logging (uses custom logger internally if set, otherwise logs to console).
+     */
+    private final ConsoleFallbackLogger logger;
+
+    /**
      * Constructor for the RecordableHttpURLConnection class.
      *
      * @param url              The URL to connect to.
@@ -76,7 +84,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @throws IOException If an error occurs.
      */
     public RecordableHttpURLConnection(URL url, Proxy proxy, Cassette cassette, Mode mode,
-                                       AdvancedSettings advancedSettings) throws IOException {
+                                       AdvancedSettings advancedSettings)
+            throws IOException, RecordingExpirationException {
         // this super is not used
         super(url);
         if (proxy == null) {
@@ -90,6 +99,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         this.mode = mode;
         this.advancedSettings = advancedSettings;
         this.converter = new HttpUrlConnectionInteractionConverter();
+        this.logger = new ConsoleFallbackLogger(advancedSettings.logger, "EasyVCR");
+        ExpirationActionExtensions.checkCompatibleSettings(advancedSettings.whenExpired, mode);
     }
 
     /**
@@ -102,7 +113,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @throws IOException If an error occurs.
      */
     public RecordableHttpURLConnection(URL url, Cassette cassette, Mode mode, AdvancedSettings advancedSettings)
-            throws IOException {
+            throws IOException, RecordingExpirationException {
         this(url, null, cassette, mode, advancedSettings);
     }
 
@@ -115,7 +126,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @param mode     The mode to use.
      * @throws IOException If an error occurs.
      */
-    public RecordableHttpURLConnection(URL url, Proxy proxy, Cassette cassette, Mode mode) throws IOException {
+    public RecordableHttpURLConnection(URL url, Proxy proxy, Cassette cassette, Mode mode)
+            throws IOException, RecordingExpirationException {
         this(url, proxy, cassette, mode, new AdvancedSettings());
     }
 
@@ -127,7 +139,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @param mode     The mode to use.
      * @throws IOException If an error occurs.
      */
-    public RecordableHttpURLConnection(URL url, Cassette cassette, Mode mode) throws IOException {
+    public RecordableHttpURLConnection(URL url, Cassette cassette, Mode mode)
+            throws IOException, RecordingExpirationException {
         this(url, cassette, mode, new AdvancedSettings());
     }
 
@@ -217,7 +230,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @throws VCRException         If an error occurs.
      * @throws InterruptedException If the thread is interrupted.
      */
-    private boolean loadExistingInteraction() throws VCRException, InterruptedException {
+    private boolean loadExistingInteraction() throws VCRException, RecordingExpirationException, InterruptedException {
         Request request =
                 converter.createRecordedRequest(this.connection, this.requestBody, this.advancedSettings.censors);
         // null because couldn't be created
@@ -229,6 +242,45 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         if (matchingInteraction == null) {
             return false;
         }
+
+        // check the recording's expiration
+        if (advancedSettings.timeFrame.hasLapsed(matchingInteraction.getRecordedAt())) {
+            // recording has expired
+            switch (mode) {
+                case Replay:
+                    switch (advancedSettings.whenExpired) {
+                        case Warn:
+                            this.logger.warning("Matching interaction is expired.");
+                            break;
+                        case ThrowException:
+                            throw new RecordingExpirationException("Matching interaction is expired.");
+                        case RecordAgain:
+                            // we should never get here, but just in case.
+                            throw new RecordingExpirationException(
+                                    "Cannot use the Record_Again expiration action in combination with Replay mode.");
+                        default:
+                            break;
+                    }
+                    break;
+                case Auto:
+                    switch (advancedSettings.whenExpired) {
+                        case Warn:
+                            this.logger.warning("Matching interaction is expired.");
+                            break;
+                        case ThrowException:
+                            throw new RecordingExpirationException("Matching interaction is expired.");
+                        case RecordAgain:
+                            // will trigger a re-recording of the interaction
+                            return false;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
         simulateDelay(matchingInteraction, this.advancedSettings);
         this.cachedInteraction = matchingInteraction;
         this.cachedInteraction.getResponse().addReplayHeaders();
@@ -240,7 +292,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      *
      * @throws VCRException If an error occurs.
      */
-    private void buildCache() throws VCRException {
+    private void buildCache() throws VCRException, RecordingExpirationException {
         // run every time a user attempts to getX()
 
         // can't setX() after the first getX(), so if cache has already been built, can't build again
@@ -256,6 +308,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
                 try {
                     loadExistingInteraction();
                 } catch (VCRException | InterruptedException e) {
+                    // does not catch RecordingExpirationException, so that exception will make it through
                     throw new RuntimeException(e);
                 }
                 break;
@@ -265,6 +318,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
                         cacheInteraction(true);
                     }
                 } catch (VCRException | InterruptedException e) {
+                    // does not catch RecordingExpirationException, so that exception will make it through
                     throw new RuntimeException(e);
                 }
                 break;
@@ -305,7 +359,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache(); // can't set anything after connecting, so might as well build the cache now
             // will establish connection as a result of caching, so need to disconnect afterwards
             this.connection.disconnect();
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -341,7 +395,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache(
                     (interaction) -> interaction.getResponse().getHeaders().keySet().toArray()[n].toString(), null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -473,7 +527,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache(
                     (interaction) -> interaction.getResponse().getHeaders().values().toArray()[n].toString(), null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -528,7 +582,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getRequest().getMethod(), null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -584,7 +638,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getIntegerElementFromCache((interaction) -> interaction.getResponse().getStatus().getCode(), 0);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -611,7 +665,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getResponse().getStatus().getMessage(), null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -764,7 +818,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
                 throw new IllegalStateException("Could not load URL from cache");
             }
             return new URL(urlString);
-        } catch (VCRException | MalformedURLException e) {
+        } catch (VCRException | RecordingExpirationException | MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -826,7 +880,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getResponse().getHeaders().get(name).get(0),
                     null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -852,7 +906,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
                 return Collections.emptyMap();
             }
             return cachedInteraction.getResponse().getHeaders();
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -911,7 +965,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return getObjectElementFromCache((interaction) -> interaction.getResponse().getBody(), null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -1188,7 +1242,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
             buildCache();
             return getStringElementFromCache((interaction) -> interaction.getRequest().getHeaders().get(key).toString(),
                     null);
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -1219,7 +1273,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
             return createInputStream(this.cachedInteraction.getResponse().getBody());
-        } catch (VCRException e) {
+        } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -1358,7 +1412,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      * @since 1.3
      */
     @Override
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings ("rawtypes")
     public Object getContent(Class[] classes) throws IOException {
         // not in cassette, go to real connection
         return this.connection.getContent(classes);
