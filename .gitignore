@@ -23,9 +23,11 @@
 hs_err_pid*
 /target/
 
-
 # VS Code
 .vscode/
 
 # Cassettes
 cassettes/
+
+# macOS Finder preferences
+.DS_Store
