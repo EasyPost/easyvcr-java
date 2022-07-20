@@ -77,8 +77,8 @@ public class VCRTest {
 
         // record a request to a cassette
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
-        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
-        Assert.assertNotNull(exchangeRates);
+        FakeDataService.IPAddressData summary = fakeDataService.getIPAddressData();
+        Assert.assertNotNull(summary);
         Assert.assertTrue(cassette.numInteractions() > 0);
 
         // erase the cassette
@@ -107,8 +107,8 @@ public class VCRTest {
         vcr.insert(cassette);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
 
-        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
-        Assert.assertNotNull(exchangeRates);
+        FakeDataService.IPAddressData summary = fakeDataService.getIPAddressData();
+        Assert.assertNotNull(summary);
     }
 
     @Test
@@ -118,8 +118,8 @@ public class VCRTest {
         vcr.insert(cassette);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
 
-        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
-        Assert.assertNotNull(exchangeRates);
+        FakeDataService.IPAddressData summary = fakeDataService.getIPAddressData();
+        Assert.assertNotNull(summary);
         Assert.assertTrue(cassette.numInteractions() > 0);
     }
 
@@ -131,14 +131,14 @@ public class VCRTest {
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(vcr);
 
         // record first
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
         Assert.assertTrue(cassette.numInteractions() > 0); // make sure we recorded something
         // check that the response did not come from a recorded cassette
         Assert.assertFalse(Utilities.responseCameFromRecording(response));
 
         // now replay
         vcr.replay();
-        response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
         Assert.assertNotNull(response);
         // check that the response came from a recorded cassette
         Assert.assertTrue(Utilities.responseCameFromRecording(response));
@@ -146,7 +146,7 @@ public class VCRTest {
         // double check by erasing the cassette and trying to replay
         vcr.erase();
         // should throw an exception because there's no matching interaction now
-        Assert.assertThrows(Exception.class, fakeDataService::getExchangeRates);
+        Assert.assertThrows(Exception.class, fakeDataService::getIPAddressData);
     }
 
     @Test
@@ -189,7 +189,7 @@ public class VCRTest {
         RecordableURL client = vcr.getHttpUrlConnection(FakeDataService.URL);
         FakeDataService.HttpsUrlConnection fakeDataService =
                 new FakeDataService.HttpsUrlConnection(client.openConnectionSecure());
-        fakeDataService.getExchangeRates();
+        fakeDataService.getIPAddressData();
 
         // now replay and confirm that the censor is applied
         vcr.replay();
@@ -197,7 +197,7 @@ public class VCRTest {
         // so, we need to re-grab the VCR client and re-create the FakeDataService
         client = vcr.getHttpUrlConnection(FakeDataService.URL);
         fakeDataService = new FakeDataService.HttpsUrlConnection(client.openConnectionSecure());
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
 
         // check that the censor is applied
         Assert.assertNotNull(response);

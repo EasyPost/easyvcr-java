@@ -27,12 +27,12 @@ import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
 
 public class HttpUrlConnectionTest {
 
-    private static FakeDataService.ExchangeRates GetExchangeRatesRequest(Cassette cassette, Mode mode) throws Exception {
+    private static FakeDataService.IPAddressData getIPAddressDataRequest(Cassette cassette, Mode mode) throws Exception {
         RecordableHttpsURLConnection connection = TestUtils.getSimpleHttpsURLConnection(cassette.name, mode, null);
 
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
 
-        return fakeDataService.getExchangeRates();
+        return fakeDataService.getIPAddressData();
     }
 
     @Test
@@ -107,7 +107,7 @@ public class HttpUrlConnectionTest {
         Cassette cassette = TestUtils.getCassette("test_erase");
 
         // record something to the cassette
-        GetExchangeRatesRequest(cassette, Mode.Record);
+        getIPAddressDataRequest(cassette, Mode.Record);
         Assert.assertTrue(cassette.numInteractions() > 0);
 
         // erase the cassette
@@ -120,9 +120,9 @@ public class HttpUrlConnectionTest {
         Cassette cassette = TestUtils.getCassette("test_erase_and_record");
         cassette.erase(); // Erase cassette before recording
 
-        FakeDataService.ExchangeRates exchangeRates = GetExchangeRatesRequest(cassette, Mode.Record);
+        FakeDataService.IPAddressData summary = getIPAddressDataRequest(cassette, Mode.Record);
 
-        Assert.assertNotNull(exchangeRates);
+        Assert.assertNotNull(summary);
         Assert.assertTrue(cassette.numInteractions() > 0); // Make sure cassette is not empty
     }
 
@@ -132,7 +132,7 @@ public class HttpUrlConnectionTest {
         cassette.erase(); // Erase cassette before recording
 
         // cassette is empty, so replaying should throw an exception
-        Assert.assertThrows(Exception.class, () -> GetExchangeRatesRequest(cassette, Mode.Replay));
+        Assert.assertThrows(Exception.class, () -> getIPAddressDataRequest(cassette, Mode.Replay));
     }
 
     @Test
@@ -141,12 +141,12 @@ public class HttpUrlConnectionTest {
         cassette.erase(); // Erase cassette before recording
 
         // in replay mode, if cassette is empty, should throw an exception
-        Assert.assertThrows(Exception.class, () -> GetExchangeRatesRequest(cassette, Mode.Replay));
+        Assert.assertThrows(Exception.class, () -> getIPAddressDataRequest(cassette, Mode.Replay));
         Assert.assertEquals(cassette.numInteractions(), 0); // Make sure cassette is still empty
 
         // in auto mode, if cassette is empty, should make and record a real request
-        FakeDataService.ExchangeRates exchangeRates = GetExchangeRatesRequest(cassette, Mode.Auto);
-        Assert.assertNotNull(exchangeRates);
+        FakeDataService.IPAddressData summary = getIPAddressDataRequest(cassette, Mode.Auto);
+        Assert.assertNotNull(summary);
         Assert.assertTrue(cassette.numInteractions() > 0); // Make sure cassette is no longer empty
     }
 
@@ -162,7 +162,7 @@ public class HttpUrlConnectionTest {
 
         // Most elements of a VCR request are black-boxed, so we can't test them here.
         // Instead, we can get the recreated HttpResponseMessage and check the details.
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
         Assert.assertNotNull(response);
     }
 
@@ -185,13 +185,13 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record, advancedSettings);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        fakeDataService.getExchangeRatesRawResponse();
+        fakeDataService.getIPAddressDataRawResponse();
 
         // now replay cassette
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                 FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
 
         // check that the replayed response contains the censored header
         Assert.assertNotNull(response);
@@ -211,7 +211,7 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        fakeDataService.getExchangeRatesRawResponse();
+        fakeDataService.getIPAddressDataRawResponse();
 
         // replay cassette with default match rules, should find a match
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
@@ -219,7 +219,7 @@ public class HttpUrlConnectionTest {
         connection.setRequestProperty("X-Custom-Header",
                 "custom-value"); // add custom header to request, shouldn't matter when matching by default rules
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
         Assert.assertNotNull(response);
 
         // replay cassette with custom match rules, should not find a match because request is different (throw exception)
@@ -233,7 +233,7 @@ public class HttpUrlConnectionTest {
                 "custom-value"); // add custom header to request, causing a match failure when matching by everything
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
         FakeDataService.HttpsUrlConnection finalFakeDataService = fakeDataService;
-        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getExchangeRates());
+        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getIPAddressData());
     }
 
     @Test
@@ -246,7 +246,7 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        fakeDataService.getExchangeRatesRawResponse();
+        fakeDataService.getIPAddressDataRawResponse();
 
         // baseline - how much time does it take to replay the cassette?
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
@@ -254,11 +254,11 @@ public class HttpUrlConnectionTest {
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
 
         Instant start = Instant.now();
-        FakeDataService.ExchangeRates exchangeRates = fakeDataService.getExchangeRates();
+        FakeDataService.IPAddressData summary = fakeDataService.getIPAddressData();
         Instant end = Instant.now();
 
         // confirm the normal replay worked, note time
-        Assert.assertNotNull(exchangeRates);
+        Assert.assertNotNull(summary);
         int normalReplayTime = (int) Duration.between(start, end).toMillis();
 
         // set up advanced settings
@@ -271,11 +271,11 @@ public class HttpUrlConnectionTest {
 
         // time replay request
         start = Instant.now();
-        exchangeRates = fakeDataService.getExchangeRates();
+        summary = fakeDataService.getIPAddressData();
         end = Instant.now();
 
         // check that the delay was respected
-        Assert.assertNotNull(exchangeRates);
+        Assert.assertNotNull(summary);
         Assert.assertTrue((int) Duration.between(start, end).toMillis() >= delay);
     }
 
@@ -390,13 +390,13 @@ public class HttpUrlConnectionTest {
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                         FakeDataService.URL, cassette, Mode.Record);
         FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        fakeDataService.getExchangeRatesRawResponse();
+        fakeDataService.getIPAddressDataRawResponse();
 
         // replay cassette with default expiration rules, should find a match
         connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                 FakeDataService.URL, cassette, Mode.Replay);
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getExchangeRatesRawResponse();
+        RecordableHttpsURLConnection response = (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
         Assert.assertNotNull(response);
 
         // replay cassette with custom expiration rules, should not find a match because recording is expired (throw exception)
@@ -409,7 +409,7 @@ public class HttpUrlConnectionTest {
         fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
         FakeDataService.HttpsUrlConnection finalFakeDataService = fakeDataService;
         // this throws a RuntimeException rather than a RecordingExpirationException because the exceptions are coalesced internally
-        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getExchangeRates());
+        Assert.assertThrows(Exception.class, () -> finalFakeDataService.getIPAddressData());
 
         // replay cassette with bad expiration rules, should throw an exception because settings are bad
         advancedSettings = new AdvancedSettings();
