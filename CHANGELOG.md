@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Next Release
+## v0.4.0 (2022-10-04)
 - New feature: Set expiration time for interactions (how long since it was recorded should an interaction be considered valid)
   - Can determine what to do if a matching interaction is considered invalid:
     - Warn the user, but proceed with the interaction
