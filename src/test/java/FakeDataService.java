@@ -76,7 +76,6 @@ public class FakeDataService {
             throw new Exception("No VCR or client has been set.");
         }
 
-        @Override
         public IPAddressData getIPAddressData() throws Exception {
             RecordableHttpsURLConnection client = (RecordableHttpsURLConnection) getIPAddressDataRawResponse();
             String json = readFromInputStream(client.getInputStream());
@@ -84,10 +83,17 @@ public class FakeDataService {
             return Serialization.convertJsonToObject(json, IPAddressData.class);
         }
 
-        @Override
         public Object getIPAddressDataRawResponse() throws Exception {
             RecordableHttpsURLConnection client = getClient(URL);
             client.connect();
+            return client;
+        }
+
+        public RecordableHttpsURLConnection makeBadRequest() throws Exception {
+            RecordableHttpsURLConnection client = getClient(URL);
+            client.setRequestMethod("POST");
+            client.connect();
+
             return client;
         }
     }

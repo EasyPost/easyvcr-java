@@ -9,12 +9,14 @@ import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.TimeFrame;
+import com.easypost.easyvcr.Utilities;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.google.gson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +27,7 @@ import java.util.List;
 
 import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
 
-public class HttpUrlConnectionTest {
+public class  HttpUrlConnectionTest {
 
     private static FakeDataService.IPAddressData getIPAddressDataRequest(Cassette cassette, Mode mode) throws Exception {
         RecordableHttpsURLConnection connection = TestUtils.getSimpleHttpsURLConnection(cassette.name, mode, null);
@@ -418,5 +420,33 @@ public class HttpUrlConnectionTest {
         AdvancedSettings finalAdvancedSettings = advancedSettings;
         Assert.assertThrows(RecordingExpirationException.class, () -> HttpClients.newClient(HttpClientType.HttpsUrlConnection,
                 FakeDataService.URL, cassette, Mode.Replay, finalAdvancedSettings));
+    }
+
+    @Test
+    public void testReplayHttpError() throws Exception {
+        Cassette cassette = TestUtils.getCassette("test_replay_http_error");
+        cassette.erase(); // Erase cassette before recording
+
+        // make connection using Mode.Record
+        RecordableHttpsURLConnection connection =
+                (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                        FakeDataService.URL, cassette, Mode.Record);
+        // make data service using connection
+        FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        // make HTTP call with data service (record to cassette)
+        RecordableHttpsURLConnection clientAfterRequest = fakeDataService.makeBadRequest();
+        Assert.assertTrue(cassette.numInteractions() > 0); // make sure we recorded something
+
+        // make connection using Mode.Replay
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay);
+        // make data service using connection
+        fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        // make HTTP call with data service (replay from cassette)
+        clientAfterRequest = fakeDataService.makeBadRequest();
+
+        // make sure the error stream was loaded properly
+        Assert.assertNotNull(clientAfterRequest);
+        Assert.assertNotNull(clientAfterRequest.getErrorStream());
     }
 }
