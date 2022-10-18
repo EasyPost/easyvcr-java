@@ -706,8 +706,33 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
      */
     @Override
     public InputStream getErrorStream() {
-        // not in cassette, get from real request
-        return this.connection.getErrorStream();
+        if (mode == Mode.Bypass) {
+            return this.connection.getErrorStream();
+        }
+
+        /*
+        Based on this Sun source code for HttpURLConnection (seen below):
+        if (connected && responseCode >= 400) {
+            // Client Error 4xx and Server Error 5xx
+            if (errorStream != null) {
+                return errorStream;
+            } else if (inputStream != null) {
+                return inputStream;
+            }
+        }
+        return null;
+         */
+        try {
+            buildCache();
+
+            if (responseCode >= 400) {
+                // Client Error 4xx and Server Error 5xx
+                return createInputStream(this.cachedInteraction.getResponse().getBody());
+            }
+            return null;
+        } catch (VCRException | RecordingExpirationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

@@ -23,8 +23,10 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.SocketPermission;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownServiceException;
+import java.nio.ByteBuffer;
 import java.security.Permission;
 import java.security.Principal;
 import java.security.cert.Certificate;
@@ -709,8 +711,33 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
      */
     @Override
     public InputStream getErrorStream() {
-        // not in cassette, get from real request
-        return this.connection.getErrorStream();
+        if (mode == Mode.Bypass) {
+            return this.connection.getErrorStream();
+        }
+
+        /*
+        Based on this Sun source code for HttpURLConnection (seen below):
+        if (connected && responseCode >= 400) {
+            // Client Error 4xx and Server Error 5xx
+            if (errorStream != null) {
+                return errorStream;
+            } else if (inputStream != null) {
+                return inputStream;
+            }
+        }
+        return null;
+         */
+        try {
+            buildCache();
+
+            if (responseCode >= 400) {
+                // Client Error 4xx and Server Error 5xx
+                return createInputStream(this.cachedInteraction.getResponse().getBody());
+            }
+            return null;
+        } catch (VCRException | RecordingExpirationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
