@@ -730,7 +730,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
         try {
             buildCache();
 
-            if (responseCode >= 400) {
+            if (this.cachedInteraction.getResponse().getStatus().getCode() >= 400) {
                 // Client Error 4xx and Server Error 5xx
                 return createInputStream(this.cachedInteraction.getResponse().getBody());
             }
