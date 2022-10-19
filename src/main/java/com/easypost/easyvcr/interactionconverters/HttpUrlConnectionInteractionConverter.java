@@ -80,11 +80,10 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             String uriString = connection.getURL().toString();
             Map<String, List<String>> headers = connection.getHeaderFields();
             String body = null;
-            String errors = null;
             try {
                 body = readFromInputStream(connection.getInputStream());
             } catch (NullPointerException | IOException ignored) {  // nothing in body if bad status code from server
-                errors = readFromInputStream(connection.getErrorStream());
+                body = readFromInputStream(connection.getErrorStream());
             }
 
             // apply censors
@@ -100,10 +99,6 @@ public final class HttpUrlConnectionInteractionConverter extends BaseInteraction
             if (body != null) {
                 body = censors.applyBodyParameterCensors(body);
                 response.setBody(body);
-            }
-            if (errors != null) {
-                errors = censors.applyBodyParameterCensors(errors);
-                response.setErrors(errors);
             }
 
             return new ResponseAndTime(response, milliseconds);
