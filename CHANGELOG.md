@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.4.1 (2022-10-19)
+
+- Fix a bug where the error stream of a bad HTTP request (4xx or 5xx) was not properly recreated on replay.
+
 ## v0.4.0 (2022-10-04)
 
 - New feature: Set expiration time for interactions (how long since it was recorded should an interaction be considered valid)
