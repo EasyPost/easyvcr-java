@@ -16,7 +16,7 @@ public abstract class ExpirationActionExtensions {
             throws RecordingExpirationException {
         if (action == ExpirationActions.RecordAgain && mode == Mode.Replay) {
             throw new RecordingExpirationException(
-                    "Cannot use the Record_Again expiration action in combination with Replay mode.");
+                    "Cannot use the RecordAgain expiration action in combination with Replay mode.");
         }
     }
 }

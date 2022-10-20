@@ -8,6 +8,7 @@
       would, rather than needlessly stored in a separate "error" key. This more closely matches the behavior of EasyVCR C#.
     - This is a breaking change for previously-recorded "error" cassettes, which will no longer replay as expected and
       will need to be re-recorded (although likely never worked as expected in the first place).
+- Fix a bug where using any expiration time frame other than "forever" and "never" would throw a NullPointerException.
 
 ## v0.4.1 (2022-10-19)
 

@@ -89,12 +89,18 @@ public class TimeFrame {
      * @return Starting time plus this time frame.
      */
     private Instant timePlusFrame(Instant fromTime) {
+        // We need to do a null check here. The "default" case in the switch statement below doesn't handle null enums.
+        if (commonTimeFrame == null) {  // No common time frame was used
+            return fromTime.plus(days, ChronoUnit.DAYS).plus(hours, ChronoUnit.HOURS)
+                    .plus(minutes, ChronoUnit.MINUTES).plus(seconds, ChronoUnit.SECONDS);
+        }
         switch (commonTimeFrame) {
             case Forever:
                 return Instant.MAX;  // will always been in the future
             case Never:
                 return Instant.MIN; // will always been in the past
             default:
+                // We should never get here, since there should always either be an accounted-for enum, or a null value (handled above).
                 return fromTime.plus(days, ChronoUnit.DAYS).plus(hours, ChronoUnit.HOURS)
                         .plus(minutes, ChronoUnit.MINUTES).plus(seconds, ChronoUnit.SECONDS);
         }
