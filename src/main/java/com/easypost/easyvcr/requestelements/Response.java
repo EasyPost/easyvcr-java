@@ -48,11 +48,6 @@ public final class Response extends HttpElement {
     private Status status;
 
     /**
-     * The errors of the response.
-     */
-    private String errors;
-
-    /**
      * The URI of the response.
      */
     private URI uri;
@@ -397,24 +392,6 @@ public final class Response extends HttpElement {
      */
     public void setStatus(Status status) {
         this.status = status;
-    }
-
-    /**
-     * Returns the errors of the response.
-     *
-     * @return the errors of the response
-     */
-    public String getErrors() {
-        return this.errors;
-    }
-
-    /**
-     * Sets the errors of the response.
-     *
-     * @param errors the errors of the response
-     */
-    public void setErrors(String errors) {
-        this.errors = errors;
     }
 
     /**
