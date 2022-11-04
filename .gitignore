@@ -31,3 +31,6 @@ cassettes/
 
 # macOS Finder preferences
 .DS_Store
+
+# Coverage
+*.lcov
