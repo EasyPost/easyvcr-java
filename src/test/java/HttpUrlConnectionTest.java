@@ -391,6 +391,50 @@ public class HttpUrlConnectionTest {
     }
 
     @Test
+    public void testMatchNonJsonBody() throws RecordingExpirationException, IOException, URISyntaxException {
+        Cassette cassette = TestUtils.getCassette("test_match_non_json_body");
+        cassette.erase(); // Erase cassette before recording
+
+        String url = "https://google.com";
+        // make form-encoded body
+        String bodyData = "name[first]=firstname&name[last]=lastname";
+        String contentType = "application/x-www-form-urlencoded";
+
+        // record baseline request first
+        RecordableHttpsURLConnection connection =
+                HttpClients.newHttpsURLConnection(FakeDataService.URL, cassette, Mode.Record);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        try (OutputStream output = connection.getOutputStream()) {
+            output.write(bodyData.getBytes(StandardCharsets.UTF_8));
+        }
+        connection.connect();
+
+        // try to replay the request with match by body enforcement
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.matchRules = new MatchRules().byBody();
+        // need to include censors to trigger an attempted JSON de/serialization for censoring
+        advancedSettings.censors = new Censors().censorBodyElementsByKeys(new ArrayList<String>() {{
+            add("name");
+        }});
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                url, cassette, Mode.Replay, advancedSettings);
+
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", contentType);
+        try (OutputStream output = connection.getOutputStream()) {
+            output.write(bodyData.getBytes(StandardCharsets.UTF_8));
+        }
+
+        connection.connect();
+
+        // should not fail since we're not attempting to serialize non-JSON data
+        int statusCode = connection.getResponseCode();
+        Assert.assertNotEquals(0, statusCode);
+    }
+
+    @Test
     public void testExpirationSettingsCommonTimeFrame() throws Exception {
         Cassette cassette = TestUtils.getCassette("test_expiration_settings");
         cassette.erase(); // Erase cassette before recording

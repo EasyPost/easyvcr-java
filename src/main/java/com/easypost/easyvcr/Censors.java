@@ -202,7 +202,8 @@ public final class Censors {
                 List<Object> censoredBodyList = applyJsonCensors(bodyList, censorText, elementsToCensor);
                 return censoredBodyList == null ? data : Serialization.convertObjectToJson(censoredBodyList);
             } catch (Exception notJsonData) {
-                throw new JsonParseException("Body is not a JSON dictionary or list");
+                // body is not parsable as JSON, return original data
+                return data;
             }
         }
     }
