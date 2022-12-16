@@ -1,7 +1,13 @@
 package com.easypost.easyvcr;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
 import javax.net.ssl.HttpsURLConnection;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,5 +67,45 @@ public abstract class Utilities {
         }
 
         return Censors.censorJsonData(json, "FILTERED", elements);
+    }
+
+    /**
+     * Convert a URI's query parameters to a Map.
+     *
+     * @param uri The URI.
+     * @return The Map of query parameters.
+     */
+    public static Map<String, String> queryParametersToMap(URI uri) {
+        List<NameValuePair> receivedQueryDict = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
+        if (receivedQueryDict == null || receivedQueryDict.size() == 0) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> queryDict = new java.util.Hashtable<>();
+        for (NameValuePair pair : receivedQueryDict) {
+            queryDict.put(pair.getName(), pair.getValue());
+        }
+        return queryDict;
+    }
+
+    /**
+     * Extract the path from a URI.
+     *
+     * @param uri The URI to extract the path from.
+     * @return The path.
+     */
+    public static String extractPathFromUri(URI uri) {
+        String uriString = uri.toString();
+
+        // strip the query parameters
+        uriString = uriString.replace(uri.getQuery(), "");
+
+        if (uriString.endsWith("?")) {
+            uriString = uriString.substring(0, uriString.length() - 1);
+        }
+
+        // strip the scheme
+        uriString = uriString.replace(uri.getScheme() + "://", "");
+
+        return uriString;
     }
 }

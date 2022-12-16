@@ -2,13 +2,13 @@ package com.easypost.easyvcr;
 
 public class CensorElement {
     /**
-     * The name of the element to censor.
+     * The value of the element to censor.
      */
-    private final String name;
+    protected final String value;
     /**
-     * Whether the name must match exactly to trigger a censor.
+     * Whether the value must match exactly to trigger a censor.
      */
-    private final boolean caseSensitive;
+    protected final boolean caseSensitive;
 
     /**
      * Constructor.
@@ -16,7 +16,7 @@ public class CensorElement {
      * @param caseSensitive Whether the name must match exactly to trigger a censor.
      */
     public CensorElement(String name, boolean caseSensitive) {
-        this.name = name;
+        this.value = name;
         this.caseSensitive = caseSensitive;
     }
 
@@ -27,9 +27,9 @@ public class CensorElement {
      */
     public boolean matches(String key) {
         if (caseSensitive) {
-            return key.equals(name);
+            return key.equals(value);
         } else {
-            return key.equalsIgnoreCase(name);
+            return key.equalsIgnoreCase(value);
         }
     }
 }

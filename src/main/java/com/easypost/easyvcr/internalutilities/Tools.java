@@ -5,6 +5,8 @@ import com.easypost.easyvcr.requestelements.HttpInteraction;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -15,6 +17,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -59,24 +63,6 @@ public abstract class Tools {
      */
     public static String toBase64String(String input) {
         return Base64.getEncoder().encodeToString(input.getBytes());
-    }
-
-    /**
-     * Convert a URI's query parameters to a Map.
-     *
-     * @param uri The URI.
-     * @return The Map of query parameters.
-     */
-    public static Map<String, String> queryParametersToMap(URI uri) {
-        List<NameValuePair> receivedQueryDict = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
-        if (receivedQueryDict == null || receivedQueryDict.size() == 0) {
-            return Collections.emptyMap();
-        }
-        Map<String, String> queryDict = new java.util.Hashtable<>();
-        for (NameValuePair pair : receivedQueryDict) {
-            queryDict.put(pair.getName(), pair.getValue());
-        }
-        return queryDict;
     }
 
     /**

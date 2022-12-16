@@ -142,8 +142,8 @@ public final class MatchRules {
         } else {
             byBaseUrl();
             by((received, recorded) -> {
-                Map<String, String> receivedQuery = Tools.queryParametersToMap(received.getUri());
-                Map<String, String> recordedQuery = Tools.queryParametersToMap(recorded.getUri());
+                Map<String, String> receivedQuery = Utilities.queryParametersToMap(received.getUri());
+                Map<String, String> recordedQuery = Utilities.queryParametersToMap(recorded.getUri());
                 if (receivedQuery.size() != recordedQuery.size()) {
                     return false;
                 }
