@@ -3,6 +3,7 @@ package com.easypost.easyvcr;
 import com.easypost.easyvcr.internalutilities.Tools;
 import com.easypost.easyvcr.requestelements.Request;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -82,9 +83,10 @@ public final class MatchRules {
             receivedBody = Utilities.removeJsonElements(receivedBody, ignoredElements);
             recordedBody = Utilities.removeJsonElements(recordedBody, ignoredElements);
 
-            // convert body to base64string to assist comparison by removing special characters
-            receivedBody = Tools.toBase64String(receivedBody);
-            recordedBody = Tools.toBase64String(recordedBody);
+            // normalize the bodies
+            receivedBody = Normalizer.normalize(receivedBody, Normalizer.Form.NFD);
+            recordedBody = Normalizer.normalize(recordedBody, Normalizer.Form.NFD);
+
             return receivedBody.equalsIgnoreCase(recordedBody);
         });
         return this;
