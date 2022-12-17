@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Next Release
+
+- [ADDED] Ability to censor parts of a URL path using regex patterns.
+
 ## v0.4.2 (2022-10-20)
 
 - Fix a bug where the error data of a bad HTTP request (4xx or 5xx) was not stored as expected in cassettes, causing

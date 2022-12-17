@@ -91,9 +91,13 @@ Now when tests are run, no real HTTP calls will be made. Instead, the HTTP respo
 
 ### Censoring
 
-Censor sensitive data in the request and response bodies and headers, such as API keys and auth tokens.
+Censor sensitive data in the request and response, such as API keys and auth tokens.
 
-NOTE: Censors can only be applied to JSON request and response bodies. Attempting to apply censors to non-JSON data will throw an exception.
+Can censor:
+- Request and response headers (via key name)
+- Request and response bodies (via key name) (JSON only)
+- Request query parameters (via key name)
+- Request URL path elements (via regex pattern matching)
 
 **Default**: *Disabled*
 
@@ -114,12 +118,17 @@ public class Example {
         Cassette cassette = new Cassette("path/to/cassettes", "my_cassette");
 
         AdvancedSettings advancedSettings = new AdvancedSettings();
+        
         List<String> headersToCensor = new ArrayList<>();
         headersToCensor.add("Authorization"); // Hide the Authorization header
         advancedSettings.censors = new Censors().censorHeadersByKeys(headersToCensor);
         advancedSettings.censors.censorBodyElements(new ArrayList<>() {{
             add(new CensorElement("table", true)); // Hide the table element (case-sensitive) in the request and response body
         }});
+        advancedSettings.censors.censorPathElementsByPattern(new ArrayList<>() {{
+            add(".*\\d{4}.*"); // Hide any path element that contains 4 digits
+        }});
+        
         // or
         advancedSettings.censors =
                 Censors.strict(); // use the built-in strict censoring mode (hides common sensitive data)
