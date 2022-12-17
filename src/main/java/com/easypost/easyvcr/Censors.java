@@ -286,9 +286,10 @@ public final class Censors {
     /**
      * Censor the appropriate query parameters.
      *
-     * @param url                 Full URL string to apply censors to.
-     * @param censorText          The string to use to censor sensitive information.
-     * @param queryParamsToCensor The query parameters to censor.
+     * @param url                  Full URL string to apply censors to.
+     * @param censorText           The string to use to censor sensitive information.
+     * @param queryParamsToCensor  The query parameters to censor.
+     * @param pathElementsToCensor The path elements to censor.
      * @return Censored URL string.
      */
     public static String applyUrlCensors(String url, String censorText,
