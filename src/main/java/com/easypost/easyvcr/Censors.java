@@ -37,6 +37,11 @@ public final class Censors {
     private final List<CensorElement> queryParamsToCensor;
 
     /**
+     * The URL path elements to censor.
+     */
+    private final List<RegexCensorElement> pathElementsToCensor;
+
+    /**
      * Initialize a new instance of the Censors factory, using default censor string.
      */
     public Censors() {
@@ -52,6 +57,7 @@ public final class Censors {
         this.queryParamsToCensor = new ArrayList<>();
         this.bodyElementsToCensor = new ArrayList<>();
         this.headersToCensor = new ArrayList<>();
+        this.pathElementsToCensor = new ArrayList<>();
         this.censorText = censorString;
     }
 
@@ -126,7 +132,7 @@ public final class Censors {
      * @param dictionary       JSON dictionary to process.
      * @param censorText       Text to use when censoring an element.
      * @param elementsToCensor List of elements to find and censor.
-     * @return Censored JSON dicstionary.
+     * @return Censored JSON dictionary.
      */
     private static Map<String, Object> applyJsonCensors(Map<String, Object> dictionary, String censorText,
                                                         List<CensorElement> elementsToCensor) {
@@ -280,45 +286,73 @@ public final class Censors {
     /**
      * Censor the appropriate query parameters.
      *
-     * @param url                 Full URL string to apply censors to.
-     * @param censorText          The string to use to censor sensitive information.
-     * @param queryParamsToCensor The query parameters to censor.
+     * @param url                  Full URL string to apply censors to.
+     * @param censorText           The string to use to censor sensitive information.
+     * @param queryParamsToCensor  The query parameters to censor.
+     * @param pathElementsToCensor The path elements to censor.
      * @return Censored URL string.
      */
-    public static String applyQueryParameterCensors(String url, String censorText,
-                                                    List<CensorElement> queryParamsToCensor) {
+    public static String applyUrlCensors(String url, String censorText,
+                                         List<CensorElement> queryParamsToCensor,
+                                         List<RegexCensorElement> pathElementsToCensor) {
         if (url == null || url.length() == 0) {
             // short circuit if url is null
             return url;
         }
 
-        if (queryParamsToCensor.size() == 0) {
+        if (queryParamsToCensor.size() == 0 && pathElementsToCensor.size() == 0) {
             // short circuit if there are no censors to apply
             return url;
         }
 
         URI uri = URI.create(url);
-        Map<String, String> queryParameters = Tools.queryParametersToMap(uri);
-        if (queryParameters.size() == 0) {
-            // short circuit if there are no query parameters to censor
-            return url;
+
+        String path = Utilities.extractPathFromUri(uri);
+        Map<String, String> queryParameters = Utilities.queryParametersToMap(uri);
+
+        String censoredPath;
+        String censoredQueryString;
+
+        if (pathElementsToCensor.size() == 0) {
+            // don't need to censor path elements
+            censoredPath = path;
+        } else {
+            // censor path elements
+            String tempPath = path;
+            for (RegexCensorElement regexCensorElement : pathElementsToCensor) {
+                tempPath = regexCensorElement.matchAndReplaceAsNeeded(tempPath, censorText);
+            }
+
+            censoredPath = tempPath;
         }
 
-        List<String> queryKeys = new ArrayList<>(queryParameters.keySet());
-        for (String queryKey : queryKeys) {
-            if (elementShouldBeCensored(queryKey, queryParamsToCensor)) {
-                queryParameters.put(queryKey, censorText);
+        if (queryParameters.size() == 0) {
+            // short circuit if there are no query parameters to censor
+            censoredQueryString = null;
+        } else {
+            if (queryParamsToCensor.size() == 0) {
+                // don't need to censor query parameters
+                censoredQueryString = uri.getQuery();
+            } else {
+                // censor query parameters
+                List<String> queryKeys = new ArrayList<>(queryParameters.keySet());
+                for (String queryKey : queryKeys) {
+                    if (elementShouldBeCensored(queryKey, queryParamsToCensor)) {
+                        queryParameters.put(queryKey, censorText);
+                    }
+                }
+
+                List<NameValuePair> censoredQueryParametersList = Tools.mapToQueryParameters(queryParameters);
+                censoredQueryString = URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
             }
         }
 
-        List<NameValuePair> censoredQueryParametersList = Tools.mapToQueryParameters(queryParameters);
-        String formattedQueryParameters = URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
-        if (formattedQueryParameters.length() == 0) {
-            // short circuit if there are no query parameters to censor
-            return url;
+        String censoredUrl = censoredPath;
+        if (censoredQueryString != null) {
+            censoredUrl += "?" + censoredQueryString;
         }
 
-        return uri.getScheme() + "://" + uri.getHost() + uri.getPath() + "?" + formattedQueryParameters;
+        return uri.getScheme() + "://" + censoredUrl;
     }
 
     /**
@@ -360,7 +394,7 @@ public final class Censors {
      * Add a rule to censor specified headers.
      * Note: This will censor the header keys in both the request and response.
      *
-     * @param headers List of Headers to censor.
+     * @param headers List of headers to censor.
      * @return This Censors factory.
      */
     public Censors censorHeaders(List<CensorElement> headers) {
@@ -397,7 +431,7 @@ public final class Censors {
     /**
      * Add a rule to censor specified query parameters.
      *
-     * @param elements List of QueryElements to censor.
+     * @param elements List of query parameters to censor.
      * @return This Censors factory.
      */
     public Censors censorQueryParameters(List<CensorElement> elements) {
@@ -430,6 +464,41 @@ public final class Censors {
     }
 
     /**
+     * Add a rule to censor specified path elements.
+     *
+     * @param elements List of path elements to censor.
+     * @return This Censors factory.
+     */
+    public Censors censorPathElements(List<RegexCensorElement> elements) {
+        pathElementsToCensor.addAll(elements);
+        return this;
+    }
+
+    /**
+     * Add a rule to censor specified path elements by regular expression patterns.
+     *
+     * @param patterns      Patterns of path elements to censor.
+     * @param caseSensitive Whether to use case-sensitive pattern matching.
+     * @return This Censors factory.
+     */
+    public Censors censorPathElementsByPattern(List<String> patterns, boolean caseSensitive) {
+        for (String pattern : patterns) {
+            pathElementsToCensor.add(new RegexCensorElement(pattern, caseSensitive));
+        }
+        return this;
+    }
+
+    /**
+     * Add a rule to censor specified path elements by regular expression patterns.
+     *
+     * @param patterns Patterns of path elements to censor.
+     * @return This Censors factory.
+     */
+    public Censors censorPathElementsByPattern(List<String> patterns) {
+        return censorPathElementsByPattern(patterns, false);
+    }
+
+    /**
      * Censor the appropriate body elements.
      *
      * @param body String representation of request body to apply censors to.
@@ -455,7 +524,7 @@ public final class Censors {
      * @param url Full URL string to apply censors to.
      * @return Censored URL string.
      */
-    public String applyQueryParameterCensors(String url) {
-        return applyQueryParameterCensors(url, this.censorText, this.queryParamsToCensor);
+    public String applyUrlCensors(String url) {
+        return applyUrlCensors(url, this.censorText, this.queryParamsToCensor, this.pathElementsToCensor);
     }
 }

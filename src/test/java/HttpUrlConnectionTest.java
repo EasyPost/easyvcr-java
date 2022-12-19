@@ -18,6 +18,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -206,6 +207,44 @@ public class HttpUrlConnectionTest {
         String censoredHeader = response.getHeaderField("Date");
         Assert.assertNotNull(censoredHeader);
         Assert.assertEquals(censoredHeader, censorString);
+    }
+
+    @Test
+    public void testRegexCensors() throws Exception {
+        // NOTE: This test does not currently programmatically verify that the RegexCensor is working as expected.
+        // The developer should manually verify that the cassette file contains the expected censored values.
+
+        Cassette cassette = TestUtils.getCassette("test_regex_censors");
+        cassette.erase(); // Erase cassette before recording
+
+        // set up regex pattern
+        String url = FakeDataService.URL;
+        URI uri = URI.create(url);
+        String path = Utilities.extractPathFromUri(uri);
+        String regexPattern = path;
+
+        // set up advanced settings
+        String censorString = "censored-by-test";
+        List<String> patterns = new ArrayList<>();
+        patterns.add(regexPattern);
+        Censors censors = new Censors(censorString).censorPathElementsByPattern(patterns);
+
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.censors = censors;
+
+        // record cassette with advanced settings first
+        RecordableHttpsURLConnection connection =
+                (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                        FakeDataService.URL, cassette, Mode.Record, advancedSettings);
+        FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        fakeDataService.getIPAddressDataRawResponse();
+
+        // verify that censoring does not interfere with replay
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL, cassette, Mode.Replay, advancedSettings);
+        fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        RecordableHttpsURLConnection response =
+                (RecordableHttpsURLConnection) fakeDataService.getIPAddressDataRawResponse();
     }
 
     @Test
