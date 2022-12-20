@@ -2,11 +2,33 @@
 
 [![CI](https://github.com/EasyPost/easyvcr-java/workflows/CI/badge.svg)](https://github.com/EasyPost/easyvcr-java/actions?query=workflow%3ACI)
 [![Coverage Status](https://coveralls.io/repos/github/EasyPost/easyvcr-java/badge.svg?branch=main)](https://coveralls.io/github/EasyPost/easyvcr-java?branch=main)
-[![Maven Central](https://img.shields.io/maven-central/v/com.easypost/easyvcr?label=Maven%20Central)](https://search.maven.org/artifact/com.easypost/easyvcr)
+[![Maven Central](https://img.shields.io/maven-central/v/com.easypost/easyvcr?label=Maven%20Central)](https://central.sonatype.dev/search?q=easyvcr)
 
 EasyVCR is a library for recording and replaying HTTP interactions in your test suite.
 
 This can be useful for speeding up your test suite, or for running your tests on a CI server which doesn't have connectivity to the HTTP endpoints you need to interact with.
+
+## Install
+
+### Maven
+
+Add this to your project's POM:
+
+```xml
+<dependency>
+  <groupId>com.easypost</groupId>
+  <artifactId>easyvcr</artifactId>
+  <version>0.5.0</version>
+</dependency>
+```
+
+### Gradle
+
+Add this to your project's build file:
+
+```groovy
+implementation "com.easypost:easyvcr:0.5.0"
+```
 
 ## Supported HTTP Clients
 
@@ -94,6 +116,7 @@ Now when tests are run, no real HTTP calls will be made. Instead, the HTTP respo
 Censor sensitive data in the request and response, such as API keys and auth tokens.
 
 Can censor:
+
 - Request and response headers (via key name)
 - Request and response bodies (via key name) (JSON only)
 - Request query parameters (via key name)
