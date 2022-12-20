@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/EasyPost/easyvcr-java/workflows/CI/badge.svg)](https://github.com/EasyPost/easyvcr-java/actions?query=workflow%3ACI)
 [![Coverage Status](https://coveralls.io/repos/github/EasyPost/easyvcr-java/badge.svg?branch=main)](https://coveralls.io/github/EasyPost/easyvcr-java?branch=main)
-[![Maven Central](https://img.shields.io/maven-central/v/com.easypost/easyvcr?label=Maven%20Central)](https://central.sonatype.dev/artifact/com.easypost/easyvcr)
+[![Maven Central](https://img.shields.io/maven-central/v/com.easypost/easyvcr?label=Maven%20Central)](https://central.sonatype.dev/search?q=easyvcr)
 
 EasyVCR is a library for recording and replaying HTTP interactions in your test suite.
 
