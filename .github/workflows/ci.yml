@@ -11,23 +11,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java_version: [ "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" ]
+        javaversion: [ "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" ]
     steps:
       - uses: actions/checkout@v3
       - name: Load Maven dependencies cache
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-build${{ matrix.java_version }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-build${{ matrix.javaversion }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Install dependencies
         run: make install
-      - name: Set up Java ${{ matrix.java_version }}
+      - name: Set up Java ${{ matrix.javaversion }}
         uses: actions/setup-java@v3
         with:
           distribution: "zulu"
-          java-version: ${{ matrix.java_version }}
+          java-version: ${{ matrix.javaversion }}
       - name: Build and test with Maven
         run: make coverage
       - name: Load Rust cache
@@ -74,10 +74,3 @@ jobs:
         with:
           name: DependencyCheck report
           path: ${{github.workspace}}/target/dependency-check-report.html
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout Repository'
-        uses: actions/checkout@v3
-      - name: 'Dependency Review'
-        uses: actions/dependency-review-action@v2
