@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Censoring capabilities for EasyVCR.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings ("unchecked")
 public final class Censors {
     /**
      * The body elements to censor.
@@ -291,8 +291,7 @@ public final class Censors {
      * @param pathElementsToCensor The path elements to censor.
      * @return Censored URL string.
      */
-    public static String applyUrlCensors(String url, String censorText,
-                                         List<CensorElement> queryParamsToCensor,
+    public static String applyUrlCensors(String url, String censorText, List<CensorElement> queryParamsToCensor,
                                          List<RegexCensorElement> pathElementsToCensor) {
         if (url == null || url.length() == 0) {
             // short circuit if url is null
@@ -341,8 +340,10 @@ public final class Censors {
                     }
                 }
 
-                List<ApachePatch.NameValuePair> censoredQueryParametersList = Tools.mapToQueryParameters(queryParameters);
-                censoredQueryString = ApachePatch.URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
+                List<ApachePatch.NameValuePair> censoredQueryParametersList =
+                        Tools.mapToQueryParameters(queryParameters);
+                censoredQueryString =
+                        ApachePatch.URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
             }
         }
 

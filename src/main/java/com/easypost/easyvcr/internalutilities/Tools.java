@@ -165,7 +165,8 @@ public abstract class Tools {
      * @return The Map of query parameters.
      */
     public static Map<String, String> queryParametersToMap(URI uri) {
-        List<ApachePatch.NameValuePair> receivedQueryDict = ApachePatch.URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
+        List<ApachePatch.NameValuePair> receivedQueryDict =
+                ApachePatch.URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
         if (receivedQueryDict == null || receivedQueryDict.size() == 0) {
             return Collections.emptyMap();
         }

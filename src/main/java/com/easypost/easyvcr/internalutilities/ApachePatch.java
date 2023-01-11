@@ -33,11 +33,21 @@ public abstract class ApachePatch {
             this.value = value;
         }
 
-        public String getName() {
+        /**
+         * Gets the name of this pair.
+         *
+         * @return the name of this pair.
+         */
+        public final String getName() {
             return name;
         }
 
-        public String getValue() {
+        /**
+         * Gets the value of this pair.
+         *
+         * @return the value of this pair, as a string.
+         */
+        public final String getValue() {
             return value.toString();
         }
     }
@@ -45,14 +55,31 @@ public abstract class ApachePatch {
     public static class URLEncodedUtils {
         private static final BitSet URLENCODER;
 
+        /**
+         * Constructs a new instance.
+         */
         public URLEncodedUtils() {
         }
 
+        /**
+         * Parses the given URI query parameters as a list of name-value pairs.
+         *
+         * @param uri the URI to parse
+         * @param charset the charset to use
+         * @return the list of name-value pairs
+         */
         public static List<NameValuePair> parse(@NotNull URI uri, Charset charset) {
             String query = uri.getRawQuery();
             return query != null && !query.isEmpty() ? parse(query, charset) : createEmptyList();
         }
 
+        /**
+         * Parses the given string as a list of name-value pairs.
+         *
+         * @param s the string to parse
+         * @param charset the charset to use
+         * @return the list of name-value pairs
+         */
         public static List<NameValuePair> parse(String s, Charset charset) {
             if (s == null) {
                 return createEmptyList();
@@ -65,6 +92,14 @@ public abstract class ApachePatch {
             return new NameValuePair(decodeFormFields(name, charset), decodeFormFields(value, charset));
         }
 
+        /**
+         * Parses the given string as a list of name-value pairs.
+         *
+         * @param s the string to parse
+         * @param charset the charset to use
+         * @param separators separators splitting a name-value pair from another name-value pair
+         * @return the list of name-value pairs
+         */
         public static List<NameValuePair> parse(@NotNull String s, Charset charset, char... separators) {
             // Set a collection of delimiters between query entries (e.g. '&', ';')
             List<Character> delimiters = new ArrayList<>();
@@ -81,8 +116,8 @@ public abstract class ApachePatch {
 
             // Iterate through the chars
             for (char c : s.toCharArray()) {
-                // Found a delimiter ending the name-value pair
                 if (delimiters.contains(c)) {
+                    // Found a delimiter ending the name-value pair
                     // Build and add the name-value pair to the list
                     String name = nameBuilder.toString();
                     String value = valueBuilder.toString();
@@ -94,14 +129,12 @@ public abstract class ApachePatch {
 
                     // start tracking name again
                     trackingName = true;
-                }
-                // Found a name-value separator
-                else if (c == '=') {
-                    // start tracking value
+                } else if (c == '=') {
+                    // Found a name-value separator
+                    // Start tracking value
                     trackingName = false;
-                }
-                // just a normal character, add to either name or value
-                else {
+                } else {
+                    // Just a normal character, add to either name or value
                     if (trackingName) {
                         nameBuilder.append(c);
                     } else {
@@ -118,16 +151,32 @@ public abstract class ApachePatch {
             return list;
         }
 
+        /**
+         * Format the given name-value pairs into a query string.
+         *
+         * @param parameters the name-value pairs to format
+         * @param charset the charset to use
+         * @return a query string
+         */
         public static String format(Iterable<? extends NameValuePair> parameters, Charset charset) {
             return format(parameters, '&', charset);
         }
 
-        public static String format(@NotNull Iterable<? extends NameValuePair> parameters, char parameterSeparator, Charset charset) {
+        /**
+         * Format the given name-value pairs into a query string.
+         *
+         * @param parameters the name-value pairs to format
+         * @param parameterSeparator the separator to use between name-value pairs
+         * @param charset the charset to use
+         * @return a query string
+         */
+        public static String format(@NotNull Iterable<? extends NameValuePair> parameters, char parameterSeparator,
+                                    Charset charset) {
             StringBuilder result = new StringBuilder();
-            Iterator i$ = parameters.iterator();
+            Iterator i = parameters.iterator();
 
-            while (i$.hasNext()) {
-                NameValuePair parameter = (NameValuePair) i$.next();
+            while (i.hasNext()) {
+                NameValuePair parameter = (NameValuePair) i.next();
                 String encodedName = encodeFormFields(parameter.getName(), charset);
                 String encodedValue = encodeFormFields(parameter.getValue(), charset);
                 if (result.length() > 0) {
@@ -214,11 +263,13 @@ public abstract class ApachePatch {
         }
 
         private static String decodeFormFields(String content, Charset charset) {
-            return content == null ? null : urlDecode(content, charset != null ? charset : StandardCharsets.UTF_8, true);
+            return content == null ? null :
+                    urlDecode(content, charset != null ? charset : StandardCharsets.UTF_8, true);
         }
 
         private static String encodeFormFields(String content, Charset charset) {
-            return content == null ? null : urlEncode(content, charset != null ? charset : StandardCharsets.UTF_8, URLENCODER, true);
+            return content == null ? null :
+                    urlEncode(content, charset != null ? charset : StandardCharsets.UTF_8, URLENCODER, true);
         }
 
         static {
