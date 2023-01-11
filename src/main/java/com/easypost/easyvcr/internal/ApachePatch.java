@@ -1,4 +1,4 @@
-package com.easypost.easyvcr.internalutilities;
+package com.easypost.easyvcr.internal;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,11 +17,18 @@ import java.util.List;
  * This class is required because Apache's libraries are notorious for security vulnerabilities, so we'll only
  * extract the safe functions that we need, rather than importing an entire vulnerable dependency.
  * <p>
- * A lot of the functions in here are lifted straight from Apache's source code, so any janky code complaints
- * should be directed at the Apache developers who wrote them probably 20 years ago.
+ * A lot of the functions in here are lifted straight from Apache's source code with minor alterations,
+ * so any janky code complaints should be directed at the Apache developers who wrote them probably 20 years ago.
  */
 public abstract class ApachePatch {
 
+    /**
+     * This class was lifted and modified from
+     * <a href="https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.16">
+     * org.apache.httpcomponents:httpcore version 4.4.16</a>,
+     * namespace org.apache.http.NameValuePair,
+     * released under the <a href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License 2.0</a>.
+     */
     public static class NameValuePair {
 
         private final String name;
@@ -52,6 +59,13 @@ public abstract class ApachePatch {
         }
     }
 
+    /**
+     * This class was lifted and modified from
+     * <a href="https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.14">
+     * org.apache.httpcomponents:httpclient version 4.5.14</a>,
+     * namespace org.apache.http.client.utils.URLEncodedUtils,
+     * released under the <a href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License 2.0</a>.
+     */
     public static class URLEncodedUtils {
         private static final BitSet URLENCODER;
 
@@ -64,7 +78,7 @@ public abstract class ApachePatch {
         /**
          * Parses the given URI query parameters as a list of name-value pairs.
          *
-         * @param uri the URI to parse
+         * @param uri     the URI to parse
          * @param charset the charset to use
          * @return the list of name-value pairs
          */
@@ -76,7 +90,7 @@ public abstract class ApachePatch {
         /**
          * Parses the given string as a list of name-value pairs.
          *
-         * @param s the string to parse
+         * @param s       the string to parse
          * @param charset the charset to use
          * @return the list of name-value pairs
          */
@@ -95,8 +109,8 @@ public abstract class ApachePatch {
         /**
          * Parses the given string as a list of name-value pairs.
          *
-         * @param s the string to parse
-         * @param charset the charset to use
+         * @param s          the string to parse
+         * @param charset    the charset to use
          * @param separators separators splitting a name-value pair from another name-value pair
          * @return the list of name-value pairs
          */
@@ -155,7 +169,7 @@ public abstract class ApachePatch {
          * Format the given name-value pairs into a query string.
          *
          * @param parameters the name-value pairs to format
-         * @param charset the charset to use
+         * @param charset    the charset to use
          * @return a query string
          */
         public static String format(Iterable<? extends NameValuePair> parameters, Charset charset) {
@@ -165,9 +179,9 @@ public abstract class ApachePatch {
         /**
          * Format the given name-value pairs into a query string.
          *
-         * @param parameters the name-value pairs to format
+         * @param parameters         the name-value pairs to format
          * @param parameterSeparator the separator to use between name-value pairs
-         * @param charset the charset to use
+         * @param charset            the charset to use
          * @return a query string
          */
         public static String format(@NotNull Iterable<? extends NameValuePair> parameters, char parameterSeparator,

@@ -1,6 +1,8 @@
-package com.easypost.easyvcr.internalutilities;
+package com.easypost.easyvcr.internal;
 
 import com.easypost.easyvcr.AdvancedSettings;
+import com.easypost.easyvcr.CensorElement;
+import com.easypost.easyvcr.Censors;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
 
 import java.io.BufferedReader;
@@ -23,7 +25,7 @@ import java.util.Map;
 /**
  * Internal tools for EasyVCR.
  */
-public abstract class Tools {
+public abstract class Utilities {
     /**
      * Get a File object from a path.
      *
@@ -191,5 +193,59 @@ public abstract class Tools {
         } else {
             Thread.sleep(advancedSettings.manualDelay);
         }
+    }
+
+    /**
+     * Check if the object is a dictionary.
+     * @param obj The object to check.
+     * @return True if the object is a dictionary.
+     */
+    public static boolean isDictionary(Object obj) {
+        return obj instanceof Map;
+    }
+
+    /**
+     * Check if the object is a list.
+     * @param obj The object to check.
+     * @return True if the object is a list.
+     */
+    public static boolean isList(Object obj) {
+        return obj instanceof List;
+    }
+
+    /**
+     * Remove elements from a JSON string.
+     * @param json The JSON string to remove elements from.
+     * @param elements The elements to remove.
+     * @return The JSON string without the elements.
+     */
+    public static String removeJsonElements(String json, List<CensorElement> elements) {
+        if (json == null || elements == null) {
+            return json;
+        }
+
+        return Censors.censorJsonData(json, "FILTERED", elements);
+    }
+
+    /**
+     * Extract the path from a URI.
+     *
+     * @param uri The URI to extract the path from.
+     * @return The path.
+     */
+    public static String extractPathFromUri(URI uri) {
+        String uriString = uri.toString();
+
+        // strip the query parameters
+        uriString = uriString.replace(uri.getQuery(), "");
+
+        if (uriString.endsWith("?")) {
+            uriString = uriString.substring(0, uriString.length() - 1);
+        }
+
+        // strip the scheme
+        uriString = uriString.replace(uri.getScheme() + "://", "");
+
+        return uriString;
     }
 }

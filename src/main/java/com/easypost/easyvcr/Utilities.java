@@ -1,7 +1,5 @@
 package com.easypost.easyvcr;
 
-import com.easypost.easyvcr.internalutilities.Tools;
-
 import javax.net.ssl.HttpsURLConnection;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -36,34 +34,39 @@ public abstract class Utilities {
 
     /**
      * Check if the object is a dictionary.
+     * DEPRECATED: Not intended for public use.
+     *
      * @param obj The object to check.
      * @return True if the object is a dictionary.
      */
+    @Deprecated
     public static boolean isDictionary(Object obj) {
-        return obj instanceof Map;
+        return com.easypost.easyvcr.internal.Utilities.isDictionary(obj);
     }
 
     /**
      * Check if the object is a list.
+     * DEPRECATED: Not intended for public use.
+     *
      * @param obj The object to check.
      * @return True if the object is a list.
      */
+    @Deprecated
     public static boolean isList(Object obj) {
-        return obj instanceof List;
+        return com.easypost.easyvcr.internal.Utilities.isList(obj);
     }
 
     /**
      * Remove elements from a JSON string.
+     * DEPRECATED: Not intended for public use.
+     *
      * @param json The JSON string to remove elements from.
      * @param elements The elements to remove.
      * @return The JSON string without the elements.
      */
+    @Deprecated
     public static String removeJsonElements(String json, List<CensorElement> elements) {
-        if (json == null || elements == null) {
-            return json;
-        }
-
-        return Censors.censorJsonData(json, "FILTERED", elements);
+        return com.easypost.easyvcr.internal.Utilities.removeJsonElements(json, elements);
     }
 
     /**
@@ -75,28 +78,18 @@ public abstract class Utilities {
      */
     @Deprecated
     public static Map<String, String> queryParametersToMap(URI uri) {
-        return Tools.queryParametersToMap(uri);
+        return com.easypost.easyvcr.internal.Utilities.queryParametersToMap(uri);
     }
 
     /**
      * Extract the path from a URI.
+     * DEPRECATED: Not intended for public use.
      *
      * @param uri The URI to extract the path from.
      * @return The path.
      */
+    @Deprecated
     public static String extractPathFromUri(URI uri) {
-        String uriString = uri.toString();
-
-        // strip the query parameters
-        uriString = uriString.replace(uri.getQuery(), "");
-
-        if (uriString.endsWith("?")) {
-            uriString = uriString.substring(0, uriString.length() - 1);
-        }
-
-        // strip the scheme
-        uriString = uriString.replace(uri.getScheme() + "://", "");
-
-        return uriString;
+        return com.easypost.easyvcr.internal.Utilities.extractPathFromUri(uri);
     }
 }

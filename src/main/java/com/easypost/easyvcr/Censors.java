@@ -1,9 +1,9 @@
 package com.easypost.easyvcr;
 
-import com.easypost.easyvcr.internalutilities.Tools;
-import com.easypost.easyvcr.internalutilities.json.Serialization;
+import com.easypost.easyvcr.internal.Utilities;
+import com.easypost.easyvcr.internal.json.Serialization;
 import com.google.gson.JsonParseException;
-import com.easypost.easyvcr.internalutilities.ApachePatch;
+import com.easypost.easyvcr.internal.ApachePatch;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -112,7 +112,7 @@ public final class Censors {
             } else if (Utilities.isList(value)) {
                 // recursively censor list elements
                 try {
-                    // change the value if can be parsed as a list
+                    // change the value if it can be parsed as a list
                     value = applyJsonCensors((List<Object>) value, censorText, elementsToCensor);
                 } catch (ClassCastException e) {
                     // otherwise, skip censoring
@@ -164,7 +164,7 @@ public final class Censors {
                 if (Utilities.isDictionary(value)) {
                     // recursively censor inner dictionaries
                     try {
-                        // change the value if can be parsed as a dictionary
+                        // change the value if it can be parsed as a dictionary
                         value = applyJsonCensors((Map<String, Object>) value, censorText, elementsToCensor);
                     } catch (ClassCastException e) {
                         // otherwise, skip censoring
@@ -172,7 +172,7 @@ public final class Censors {
                 } else if (Utilities.isList(value)) {
                     // recursively censor list elements
                     try {
-                        // change the value if can be parsed as a list
+                        // change the value if it can be parsed as a list
                         value = applyJsonCensors((List<Object>) value, censorText, elementsToCensor);
                     } catch (ClassCastException e) {
                         // otherwise, skip censoring
@@ -306,7 +306,7 @@ public final class Censors {
         URI uri = URI.create(url);
 
         String path = Utilities.extractPathFromUri(uri);
-        Map<String, String> queryParameters = Tools.queryParametersToMap(uri);
+        Map<String, String> queryParameters = Utilities.queryParametersToMap(uri);
 
         String censoredPath;
         String censoredQueryString;
@@ -341,7 +341,7 @@ public final class Censors {
                 }
 
                 List<ApachePatch.NameValuePair> censoredQueryParametersList =
-                        Tools.mapToQueryParameters(queryParameters);
+                        Utilities.mapToQueryParameters(queryParameters);
                 censoredQueryString =
                         ApachePatch.URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
             }

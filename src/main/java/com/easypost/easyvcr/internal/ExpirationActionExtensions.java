@@ -1,4 +1,4 @@
-package com.easypost.easyvcr.internalutilities;
+package com.easypost.easyvcr.internal;
 
 import com.easypost.easyvcr.ExpirationActions;
 import com.easypost.easyvcr.Mode;

@@ -16,7 +16,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,7 +25,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
+import static com.easypost.easyvcr.internal.Utilities.readFromInputStream;
 
 public class HttpUrlConnectionTest {
 

@@ -17,7 +17,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
+import static com.easypost.easyvcr.internal.Utilities.readFromInputStream;
 
 /**
  * The interaction converter to convert Http(s)UrlConnection requests/responses to/from EasyVCR requests/responses.
