@@ -9,7 +9,6 @@ import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.TimeFrame;
-import com.easypost.easyvcr.Utilities;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.google.gson.JsonParseException;
 import org.junit.Assert;
@@ -219,7 +218,7 @@ public class HttpUrlConnectionTest {
         // set up regex pattern
         String url = FakeDataService.URL;
         URI uri = URI.create(url);
-        String path = Utilities.extractPathFromUri(uri);
+        String path = com.easypost.easyvcr.internal.Utilities.extractPathFromUri(uri);
         String regexPattern = path;
 
         // set up advanced settings
