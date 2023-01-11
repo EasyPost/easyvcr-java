@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         javaversion: [ "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" ]
@@ -23,54 +23,74 @@ jobs:
             ${{ runner.os }}-maven-
       - name: Install dependencies
         run: make install
+      - name: Set up JDK for compilation
+        uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "19" # Always use the latest JDK for building
+      - name: Compile
+        run: make build
       - name: Set up Java ${{ matrix.javaversion }}
         uses: actions/setup-java@v3
         with:
           distribution: "zulu"
           java-version: ${{ matrix.javaversion }}
-      - name: Build and test with Maven
-        run: make coverage
-      - name: Load Rust cache
-        if: github.ref == 'refs/heads/main'
-        uses: Swatinem/rust-cache@v2
-      - name: Install grcov
-        if: github.ref == 'refs/heads/main'
-        run: cargo install grcov
-      - name: Convert coverage report
-        if: github.ref == 'refs/heads/main'
-        run: grcov target/site/jacoco/jacoco.xml --source-dir ./ --ignore "target/*" > coverage.lcov
-      - name: Coveralls
-        if: github.ref == 'refs/heads/main'
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "./coverage.lcov"
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run CheckStyle checks
-        uses: nikitasavinov/checkstyle-action@0.5.1
-        with:
-          level: error
-          fail_on_error: true
-          checkstyle_config: easypost_java_style.xml
-          tool_name: "style_enforcer"
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Load Maven dependencies and CVE database cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository # The CVE database is included in the Maven repository folder
-          key: ${{ runner.os }}-maven-security-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Run security analysis
-        run: make scan
-      - name: Upload Test results
-        uses: actions/upload-artifact@master
-        with:
-          name: DependencyCheck report
-          path: ${{github.workspace}}/target/dependency-check-report.html
+      - name: Run test with Java ${{ matrix.javaversion }}
+        run: make test
+    coverage:
+      runs-on: ubuntu-20.04
+      steps:
+        - uses: actions/checkout@v3
+        - name: Install dependencies
+          run: make install
+        - name: Set up JDK for compilation
+          uses: actions/setup-java@v3
+          with:
+            distribution: "zulu"
+            java-version: "19" # Always use the latest JDK for building
+        - name: Test coverage
+          run: make coverage
+        - name: Load Rust cache
+          if: github.ref == 'refs/heads/main'
+          uses: Swatinem/rust-cache@v2
+        - name: Install grcov
+          if: github.ref == 'refs/heads/main'
+          run: cargo install grcov
+        - name: Convert coverage report
+          if: github.ref == 'refs/heads/main'
+          run: grcov target/site/jacoco/jacoco.xml --source-dir ./ --ignore "target/*" > coverage.lcov
+        - name: Coveralls
+          if: github.ref == 'refs/heads/main'
+          uses: coverallsapp/github-action@master
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            path-to-lcov: "./coverage.lcov"
+    lint:
+      runs-on: ubuntu-20.04
+      steps:
+        - uses: actions/checkout@v3
+        - name: Run CheckStyle checks
+          uses: nikitasavinov/checkstyle-action@0.5.1
+          with:
+            level: error
+            fail_on_error: true
+            checkstyle_config: easypost_java_style.xml
+            tool_name: "style_enforcer"
+    security:
+      runs-on: ubuntu-20.04
+      steps:
+        - uses: actions/checkout@v3
+        - name: Load Maven dependencies and CVE database cache
+          uses: actions/cache@v3
+          with:
+            path: ~/.m2/repository # The CVE database is included in the Maven repository folder
+            key: ${{ runner.os }}-maven-security-${{ hashFiles('**/pom.xml') }}
+            restore-keys: |
+              ${{ runner.os }}-maven-
+        - name: Run security analysis
+          run: make scan
+        - name: Upload Test results
+          uses: actions/upload-artifact@master
+          with:
+            name: DependencyCheck report
+            path: ${{github.workspace}}/target/dependency-check-report.html
