@@ -2,11 +2,6 @@ package com.easypost.easyvcr.internalutilities;
 
 import com.easypost.easyvcr.AdvancedSettings;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -17,8 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -154,15 +147,33 @@ public abstract class Tools {
      * @param map The map to convert.
      * @return The query parameters string.
      */
-    public static List<NameValuePair> mapToQueryParameters(Map<String, String> map) {
+    public static List<ApachePatch.NameValuePair> mapToQueryParameters(Map<String, String> map) {
         if (map == null || map.size() == 0) {
             return Collections.emptyList();
         }
-        List<NameValuePair> nvpList = new ArrayList<>(map.size());
+        List<ApachePatch.NameValuePair> nvpList = new ArrayList<>(map.size());
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            nvpList.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            nvpList.add(new ApachePatch.NameValuePair(entry.getKey(), entry.getValue()));
         }
         return nvpList;
+    }
+
+    /**
+     * Convert a URI's query parameters to a Map.
+     *
+     * @param uri The URI.
+     * @return The Map of query parameters.
+     */
+    public static Map<String, String> queryParametersToMap(URI uri) {
+        List<ApachePatch.NameValuePair> receivedQueryDict = ApachePatch.URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
+        if (receivedQueryDict == null || receivedQueryDict.size() == 0) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> queryDict = new java.util.Hashtable<>();
+        for (ApachePatch.NameValuePair pair : receivedQueryDict) {
+            queryDict.put(pair.getName(), pair.getValue());
+        }
+        return queryDict;
     }
 
     /**

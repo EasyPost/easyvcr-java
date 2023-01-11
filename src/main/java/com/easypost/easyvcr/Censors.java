@@ -3,8 +3,7 @@ package com.easypost.easyvcr;
 import com.easypost.easyvcr.internalutilities.Tools;
 import com.easypost.easyvcr.internalutilities.json.Serialization;
 import com.google.gson.JsonParseException;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+import com.easypost.easyvcr.internalutilities.ApachePatch;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -308,7 +307,7 @@ public final class Censors {
         URI uri = URI.create(url);
 
         String path = Utilities.extractPathFromUri(uri);
-        Map<String, String> queryParameters = Utilities.queryParametersToMap(uri);
+        Map<String, String> queryParameters = Tools.queryParametersToMap(uri);
 
         String censoredPath;
         String censoredQueryString;
@@ -342,8 +341,8 @@ public final class Censors {
                     }
                 }
 
-                List<NameValuePair> censoredQueryParametersList = Tools.mapToQueryParameters(queryParameters);
-                censoredQueryString = URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
+                List<ApachePatch.NameValuePair> censoredQueryParametersList = Tools.mapToQueryParameters(queryParameters);
+                censoredQueryString = ApachePatch.URLEncodedUtils.format(censoredQueryParametersList, StandardCharsets.UTF_8);
             }
         }
 

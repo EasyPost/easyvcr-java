@@ -1,13 +1,10 @@
 package com.easypost.easyvcr;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+import com.easypost.easyvcr.internalutilities.Tools;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -71,20 +68,14 @@ public abstract class Utilities {
 
     /**
      * Convert a URI's query parameters to a Map.
+     * DEPRECATED: Not intended for public use.
      *
      * @param uri The URI.
      * @return The Map of query parameters.
      */
+    @Deprecated
     public static Map<String, String> queryParametersToMap(URI uri) {
-        List<NameValuePair> receivedQueryDict = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
-        if (receivedQueryDict == null || receivedQueryDict.size() == 0) {
-            return Collections.emptyMap();
-        }
-        Map<String, String> queryDict = new java.util.Hashtable<>();
-        for (NameValuePair pair : receivedQueryDict) {
-            queryDict.put(pair.getName(), pair.getValue());
-        }
-        return queryDict;
+        return Tools.queryParametersToMap(uri);
     }
 
     /**
