@@ -83,6 +83,17 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>8</maven.compiler.release>
     </properties>
+    <profiles>
+        <profile>
+            <id>java8-doclint-disabled</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.opts>none</javadoc.opts>
+            </properties>
+        </profile>
+    </profiles>
     <build>
         <resources>
             <resource>
@@ -137,14 +148,9 @@
                 </executions>
             </plugin>
             <plugin>
+                <!-- Configuration via https://stackoverflow.com/a/16743137/13343799 -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <doclint>-html</doclint>
-                    <quiet>true</quiet>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                </configuration>
                 <version>3.3.1</version>
                 <executions>
                     <execution>
@@ -152,6 +158,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <doclint>${javadoc.opts}</doclint>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
