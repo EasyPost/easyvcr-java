@@ -1,4 +1,4 @@
-package com.easypost.easyvcr.internalutilities;
+package com.easypost.easyvcr.internal;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

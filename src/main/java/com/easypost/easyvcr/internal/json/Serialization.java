@@ -1,4 +1,4 @@
-package com.easypost.easyvcr.internalutilities.json;
+package com.easypost.easyvcr.internal.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

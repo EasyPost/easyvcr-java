@@ -1,8 +1,8 @@
 package com.easypost.easyvcr;
 
-import com.easypost.easyvcr.internalutilities.Files;
-import com.easypost.easyvcr.internalutilities.Tools;
-import com.easypost.easyvcr.internalutilities.json.Serialization;
+import com.easypost.easyvcr.internal.Files;
+import com.easypost.easyvcr.internal.Utilities;
+import com.easypost.easyvcr.internal.json.Serialization;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -40,7 +40,7 @@ public final class Cassette {
      */
     public Cassette(String folderPath, String cassetteName) {
         name = cassetteName;
-        filePath = Tools.getFilePath(folderPath, cassetteName + ".json");
+        filePath = Utilities.getFilePath(folderPath, cassetteName + ".json");
     }
 
     /**
@@ -62,7 +62,7 @@ public final class Cassette {
      * @return The cassette file as a File object.
      */
     private File getFile() {
-        return Tools.getFile(filePath);
+        return Utilities.getFile(filePath);
     }
 
     /**

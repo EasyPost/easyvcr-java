@@ -6,8 +6,8 @@ import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.VCRException;
 import com.easypost.easyvcr.interactionconverters.HttpUrlConnectionInteractionConverter;
-import com.easypost.easyvcr.internalutilities.ConsoleFallbackLogger;
-import com.easypost.easyvcr.internalutilities.ExpirationActionExtensions;
+import com.easypost.easyvcr.internal.ConsoleFallbackLogger;
+import com.easypost.easyvcr.internal.ExpirationActionExtensions;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
 import com.easypost.easyvcr.requestelements.Request;
 
@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.easypost.easyvcr.internalutilities.Tools.createInputStream;
-import static com.easypost.easyvcr.internalutilities.Tools.simulateDelay;
+import static com.easypost.easyvcr.internal.Utilities.createInputStream;
+import static com.easypost.easyvcr.internal.Utilities.simulateDelay;
 
 public final class RecordableHttpURLConnection extends HttpURLConnection {
 

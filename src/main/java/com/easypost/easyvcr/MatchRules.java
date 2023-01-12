@@ -1,6 +1,6 @@
 package com.easypost.easyvcr;
 
-import com.easypost.easyvcr.internalutilities.Tools;
+import com.easypost.easyvcr.internal.Utilities;
 import com.easypost.easyvcr.requestelements.Request;
 
 import java.util.ArrayList;
@@ -83,8 +83,8 @@ public final class MatchRules {
             recordedBody = Utilities.removeJsonElements(recordedBody, ignoredElements);
 
             // convert body to base64string to assist comparison by removing special characters
-            receivedBody = Tools.toBase64String(receivedBody);
-            recordedBody = Tools.toBase64String(recordedBody);
+            receivedBody = Utilities.toBase64String(receivedBody);
+            recordedBody = Utilities.toBase64String(recordedBody);
             return receivedBody.equalsIgnoreCase(recordedBody);
         });
         return this;
@@ -135,8 +135,8 @@ public final class MatchRules {
     public MatchRules byFullUrl(boolean exact) {
         if (exact) {
             by((received, recorded) -> {
-                String receivedUri = Tools.toBase64String(received.getUriString());
-                String recordedUri = Tools.toBase64String(recorded.getUriString());
+                String receivedUri = Utilities.toBase64String(received.getUriString());
+                String recordedUri = Utilities.toBase64String(recorded.getUriString());
                 return receivedUri.equalsIgnoreCase(recordedUri);
             });
         } else {

@@ -1,4 +1,4 @@
-package com.easypost.easyvcr.internalutilities;
+package com.easypost.easyvcr.internal;
 
 import java.io.File;
 import java.io.FileWriter;

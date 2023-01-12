@@ -1,6 +1,6 @@
 package com.easypost.easyvcr.requestelements;
 
-import com.easypost.easyvcr.internalutilities.json.Serialization;
+import com.easypost.easyvcr.internal.json.Serialization;
 
 /**
  * Base class for all EasyVCR request/response objects.

@@ -1,12 +1,9 @@
-package com.easypost.easyvcr.internalutilities;
+package com.easypost.easyvcr.internal;
 
 import com.easypost.easyvcr.AdvancedSettings;
+import com.easypost.easyvcr.CensorElement;
+import com.easypost.easyvcr.Censors;
 import com.easypost.easyvcr.requestelements.HttpInteraction;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -17,8 +14,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,7 +25,7 @@ import java.util.Map;
 /**
  * Internal tools for EasyVCR.
  */
-public abstract class Tools {
+public abstract class Utilities {
     /**
      * Get a File object from a path.
      *
@@ -154,15 +149,34 @@ public abstract class Tools {
      * @param map The map to convert.
      * @return The query parameters string.
      */
-    public static List<NameValuePair> mapToQueryParameters(Map<String, String> map) {
+    public static List<ApachePatch.NameValuePair> mapToQueryParameters(Map<String, String> map) {
         if (map == null || map.size() == 0) {
             return Collections.emptyList();
         }
-        List<NameValuePair> nvpList = new ArrayList<>(map.size());
+        List<ApachePatch.NameValuePair> nvpList = new ArrayList<>(map.size());
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            nvpList.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            nvpList.add(new ApachePatch.NameValuePair(entry.getKey(), entry.getValue()));
         }
         return nvpList;
+    }
+
+    /**
+     * Convert a URI's query parameters to a Map.
+     *
+     * @param uri The URI.
+     * @return The Map of query parameters.
+     */
+    public static Map<String, String> queryParametersToMap(URI uri) {
+        List<ApachePatch.NameValuePair> receivedQueryDict =
+                ApachePatch.URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
+        if (receivedQueryDict == null || receivedQueryDict.size() == 0) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> queryDict = new java.util.Hashtable<>();
+        for (ApachePatch.NameValuePair pair : receivedQueryDict) {
+            queryDict.put(pair.getName(), pair.getValue());
+        }
+        return queryDict;
     }
 
     /**
@@ -179,5 +193,59 @@ public abstract class Tools {
         } else {
             Thread.sleep(advancedSettings.manualDelay);
         }
+    }
+
+    /**
+     * Check if the object is a dictionary.
+     * @param obj The object to check.
+     * @return True if the object is a dictionary.
+     */
+    public static boolean isDictionary(Object obj) {
+        return obj instanceof Map;
+    }
+
+    /**
+     * Check if the object is a list.
+     * @param obj The object to check.
+     * @return True if the object is a list.
+     */
+    public static boolean isList(Object obj) {
+        return obj instanceof List;
+    }
+
+    /**
+     * Remove elements from a JSON string.
+     * @param json The JSON string to remove elements from.
+     * @param elements The elements to remove.
+     * @return The JSON string without the elements.
+     */
+    public static String removeJsonElements(String json, List<CensorElement> elements) {
+        if (json == null || elements == null) {
+            return json;
+        }
+
+        return Censors.censorJsonData(json, "FILTERED", elements);
+    }
+
+    /**
+     * Extract the path from a URI.
+     *
+     * @param uri The URI to extract the path from.
+     * @return The path.
+     */
+    public static String extractPathFromUri(URI uri) {
+        String uriString = uri.toString();
+
+        // strip the query parameters
+        uriString = uriString.replace(uri.getQuery(), "");
+
+        if (uriString.endsWith("?")) {
+            uriString = uriString.substring(0, uriString.length() - 1);
+        }
+
+        // strip the scheme
+        uriString = uriString.replace(uri.getScheme() + "://", "");
+
+        return uriString;
     }
 }

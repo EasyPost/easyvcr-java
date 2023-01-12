@@ -1,9 +1,9 @@
 import com.easypost.easyvcr.VCR;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpURLConnection;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
-import com.easypost.easyvcr.internalutilities.json.Serialization;
+import com.easypost.easyvcr.internal.json.Serialization;
 
-import static com.easypost.easyvcr.internalutilities.Tools.readFromInputStream;
+import static com.easypost.easyvcr.internal.Utilities.readFromInputStream;
 
 public class FakeDataService {
 
