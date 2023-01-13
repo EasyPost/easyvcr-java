@@ -237,7 +237,7 @@ public abstract class Utilities {
         String uriString = uri.toString();
 
         // strip the query parameters
-        // wrapping in a try-catch because getQuery might throw a NullPointerException if it doesn't exist (bad design, Sun)
+        // wrapping in a try-catch because getQuery might return null
         try {
             String query = uri.getQuery();
             if (query != null) {
