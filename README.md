@@ -18,7 +18,7 @@ Add this to your project's POM:
 <dependency>
   <groupId>com.easypost</groupId>
   <artifactId>easyvcr</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
 </dependency>
 ```
 
@@ -27,7 +27,7 @@ Add this to your project's POM:
 Add this to your project's build file:
 
 ```groovy
-implementation "com.easypost:easyvcr:0.5.0"
+implementation "com.easypost:easyvcr:0.5.1"
 ```
 
 ## Supported HTTP Clients
