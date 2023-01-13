@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.5.1 (2023-01-13)
+
+- Removes dead and unused code
+- Bumps dependencies to patch security vulnerabilities
+
 ## v0.5.0 (2022-12-20)
 
 - Adds the ability to censor parts of a URL path using regex patterns.
