@@ -237,7 +237,14 @@ public abstract class Utilities {
         String uriString = uri.toString();
 
         // strip the query parameters
-        uriString = uriString.replace(uri.getQuery(), "");
+        // wrapping in a try-catch because getQuery might return null
+        try {
+            String query = uri.getQuery();
+            if (query != null) {
+                uriString = uriString.replace(query, "");
+            }
+        } catch (NullPointerException ignored) {
+        }
 
         if (uriString.endsWith("?")) {
             uriString = uriString.substring(0, uriString.length() - 1);

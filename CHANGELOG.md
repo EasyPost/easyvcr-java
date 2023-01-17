@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.5.2 (2023-01-13)
+
+- Fix a null pointer exception triggered when trying to parse and censor URL path elements.
+
 ## v0.5.1 (2023-01-13)
 
 - Removes dead and unused code
