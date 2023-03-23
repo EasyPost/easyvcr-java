@@ -149,6 +149,12 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
         this(url, cassette, mode, new AdvancedSettings());
     }
 
+    private void cachedInteractionExistsOtherwiseError() throws VCRException {
+        if (this.cachedInteraction != null) {
+            throw new VCRException("No matching interaction found.");
+        }
+    }
+
     /**
      * Get an object from the cache.
      *
@@ -728,6 +734,8 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
         try {
             buildCache();
 
+            cachedInteractionExistsOtherwiseError();
+
             if (this.cachedInteraction.getResponse().getStatus().getCode() >= 400) {
                 // Client Error 4xx and Server Error 5xx
                 return createInputStream(this.cachedInteraction.getResponse().getBody());
@@ -1300,6 +1308,7 @@ public final class RecordableHttpsURLConnection extends HttpsURLConnection {
         }
         try {
             buildCache();
+            cachedInteractionExistsOtherwiseError();
             return createInputStream(this.cachedInteraction.getResponse().getBody());
         } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);

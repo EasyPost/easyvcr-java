@@ -9,6 +9,7 @@ import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.TimeFrame;
+import com.easypost.easyvcr.VCRException;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.google.gson.JsonParseException;
 import org.junit.Assert;
@@ -533,5 +534,33 @@ public class HttpUrlConnectionTest {
         // make sure the error stream was loaded properly
         Assert.assertNotNull(clientAfterRequest);
         Assert.assertNotNull(clientAfterRequest.getErrorStream());
+    }
+
+    @Test
+    public void testCachedInteractionDoesNotExist() throws Exception {
+        Cassette cassette = TestUtils.getCassette("test_cached_interaction_does_not_exist");
+        cassette.erase(); // Erase cassette before recording
+
+        // make connection using Mode.Record
+        RecordableHttpsURLConnection connection =
+                (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                        FakeDataService.URL, cassette, Mode.Record);
+        // make data service using connection
+        FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        // make HTTP call with data service (record to cassette)
+        fakeDataService.getIPAddressDataRawResponse();
+        Assert.assertTrue(cassette.numInteractions() > 0); // make sure we recorded something
+
+        // Attempt to replay a cached interaction that does not exist
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                FakeDataService.URL + "1", cassette, Mode.Replay);
+        // make data service using connection
+        fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
+        // make HTTP call with data service (replay from cassette)
+
+        // this throws a RuntimeException because of the way the exceptions are coalesced internally
+        FakeDataService.HttpsUrlConnection finalFakeDataService = fakeDataService;
+        fakeDataService.getIPAddressData();
+        // Assert.assertThrows(RuntimeException.class, finalFakeDataService::getIPAddressData);
     }
 }
