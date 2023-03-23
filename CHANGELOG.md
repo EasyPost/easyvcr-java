@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Next Release
+
+- Improve error messages when a matching interaction is not found (human-readable error messages)
+- Fix bug where the base URL matching rule was not comparing the scheme, host, and port of the request URL properly
+
 ## v0.5.2 (2023-01-13)
 
 - Fix a null pointer exception triggered when trying to parse and censor URL path elements.
