@@ -144,6 +144,11 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         this(url, cassette, mode, new AdvancedSettings());
     }
 
+    /**
+     * Throws an exception if a matching interaction has not been cached.
+     *
+     * @throws VCRException If the interaction has not been cached.
+     */
     private void cachedInteractionExistsOtherwiseError() throws VCRException {
         if (this.cachedInteraction == null) {
             throw new VCRException("No matching interaction found.");

@@ -560,8 +560,17 @@ public class HttpUrlConnectionTest {
                 url + "1", cassette, Mode.Replay, advancedSettings);
         // make HTTP call (attempt replay from cassette)
         connection.connect();
+
         // Attempt to pull data (e.g. body) from the response (via the input stream)
         // this throws a RuntimeException because of the way the exceptions are coalesced internally
-        Assert.assertThrows(RuntimeException.class, connection::getInputStream);
+        try {
+            connection.getInputStream();
+            // if we get here, the exception was not thrown as expected
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof RuntimeException);
+            Assert.assertTrue(e.getCause() instanceof VCRException);
+            Assert.assertEquals(e.getCause().getMessage(), "No matching interaction found.");
+        }
     }
 }

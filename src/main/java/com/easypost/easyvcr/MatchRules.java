@@ -58,8 +58,13 @@ public final class MatchRules {
         return this;
     }
 
+    /**
+     * Extract the base URL from a URI.
+     *
+     * @param url The URI to extract the base URL from.
+     * @return The base URL.
+     */
     private static String getBaseUrl(URI url) {
-
         String baseUrl = url.getScheme() + "://" + url.getHost();
         if (url.getPort() != -1) {
             baseUrl += ":" + url.getPort();
