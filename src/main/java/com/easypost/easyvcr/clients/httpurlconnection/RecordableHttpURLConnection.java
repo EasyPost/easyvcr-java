@@ -145,6 +145,17 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
     }
 
     /**
+     * Throws an exception if a matching interaction has not been cached.
+     *
+     * @throws VCRException If the interaction has not been cached.
+     */
+    private void cachedInteractionExistsOtherwiseError() throws VCRException {
+        if (this.cachedInteraction == null) {
+            throw new VCRException("No matching interaction found.");
+        }
+    }
+
+    /**
      * Get an object from the cache.
      *
      * @param getter       Function to get the object from the cache.
@@ -725,6 +736,8 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         try {
             buildCache();
 
+            cachedInteractionExistsOtherwiseError();
+
             if (this.cachedInteraction.getResponse().getStatus().getCode() >= 400) {
                 // Client Error 4xx and Server Error 5xx
                 return createInputStream(this.cachedInteraction.getResponse().getBody());
@@ -1297,6 +1310,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
         }
         try {
             buildCache();
+            cachedInteractionExistsOtherwiseError();
             return createInputStream(this.cachedInteraction.getResponse().getBody());
         } catch (VCRException | RecordingExpirationException e) {
             throw new RuntimeException(e);

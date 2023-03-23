@@ -3,6 +3,7 @@ package com.easypost.easyvcr;
 import com.easypost.easyvcr.internal.Utilities;
 import com.easypost.easyvcr.requestelements.Request;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,11 +51,28 @@ public final class MatchRules {
      */
     public MatchRules byBaseUrl() {
         by((received, recorded) -> {
-            String receivedUri = received.getUri().getPath();
-            String recordedUri = recorded.getUri().getPath();
+            String receivedUri = getBaseUrl(received.getUri());
+            String recordedUri = getBaseUrl(recorded.getUri());
             return receivedUri.equalsIgnoreCase(recordedUri);
         });
         return this;
+    }
+
+    /**
+     * Extract the base URL from a URI.
+     *
+     * @param url The URI to extract the base URL from.
+     * @return The base URL.
+     */
+    private static String getBaseUrl(URI url) {
+        String baseUrl = url.getScheme() + "://" + url.getHost();
+        if (url.getPort() != -1) {
+            baseUrl += ":" + url.getPort();
+        }
+        if (url.getPath() != null) {
+            baseUrl += url.getPath();
+        }
+        return baseUrl;
     }
 
     /**

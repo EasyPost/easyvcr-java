@@ -9,6 +9,7 @@ import com.easypost.easyvcr.MatchRules;
 import com.easypost.easyvcr.Mode;
 import com.easypost.easyvcr.RecordingExpirationException;
 import com.easypost.easyvcr.TimeFrame;
+import com.easypost.easyvcr.VCRException;
 import com.easypost.easyvcr.clients.httpurlconnection.RecordableHttpsURLConnection;
 import com.google.gson.JsonParseException;
 import org.junit.Assert;
@@ -533,5 +534,43 @@ public class HttpUrlConnectionTest {
         // make sure the error stream was loaded properly
         Assert.assertNotNull(clientAfterRequest);
         Assert.assertNotNull(clientAfterRequest.getErrorStream());
+    }
+
+    @Test
+    public void testCachedInteractionDoesNotExist() throws Exception {
+        Cassette cassette = TestUtils.getCassette("test_cached_interaction_does_not_exist");
+        cassette.erase(); // Erase cassette before recording
+
+        final String url = "https://google.com/path/to/endpoint";
+
+        // make connection using Mode.Record
+        RecordableHttpsURLConnection connection =
+                (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                        url, cassette, Mode.Record);
+        // make HTTP call (record to cassette)
+        connection.connect();
+        Assert.assertTrue(cassette.numInteractions() > 0); // make sure we recorded something
+
+        // Attempt to replay a cached interaction that does not exist
+        // need to use strict matching to ensure we don't match a different interaction
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.matchRules = MatchRules.strict();
+
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                url + "1", cassette, Mode.Replay, advancedSettings);
+        // make HTTP call (attempt replay from cassette)
+        connection.connect();
+
+        // Attempt to pull data (e.g. body) from the response (via the input stream)
+        // this throws a RuntimeException because of the way the exceptions are coalesced internally
+        try {
+            connection.getInputStream();
+            // if we get here, the exception was not thrown as expected
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof RuntimeException);
+            Assert.assertTrue(e.getCause() instanceof VCRException);
+            Assert.assertEquals(e.getCause().getMessage(), "No matching interaction found.");
+        }
     }
 }
