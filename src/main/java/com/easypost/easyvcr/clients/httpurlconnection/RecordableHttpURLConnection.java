@@ -145,7 +145,7 @@ public final class RecordableHttpURLConnection extends HttpURLConnection {
     }
 
     private void cachedInteractionExistsOtherwiseError() throws VCRException {
-        if (this.cachedInteraction != null) {
+        if (this.cachedInteraction == null) {
             throw new VCRException("No matching interaction found.");
         }
     }

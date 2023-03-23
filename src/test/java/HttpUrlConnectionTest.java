@@ -541,26 +541,27 @@ public class HttpUrlConnectionTest {
         Cassette cassette = TestUtils.getCassette("test_cached_interaction_does_not_exist");
         cassette.erase(); // Erase cassette before recording
 
+        final String url = "https://google.com/path/to/endpoint";
+
         // make connection using Mode.Record
         RecordableHttpsURLConnection connection =
                 (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                        FakeDataService.URL, cassette, Mode.Record);
-        // make data service using connection
-        FakeDataService.HttpsUrlConnection fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        // make HTTP call with data service (record to cassette)
-        fakeDataService.getIPAddressDataRawResponse();
+                        url, cassette, Mode.Record);
+        // make HTTP call (record to cassette)
+        connection.connect();
         Assert.assertTrue(cassette.numInteractions() > 0); // make sure we recorded something
 
         // Attempt to replay a cached interaction that does not exist
-        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
-                FakeDataService.URL + "1", cassette, Mode.Replay);
-        // make data service using connection
-        fakeDataService = new FakeDataService.HttpsUrlConnection(connection);
-        // make HTTP call with data service (replay from cassette)
+        // need to use strict matching to ensure we don't match a different interaction
+        AdvancedSettings advancedSettings = new AdvancedSettings();
+        advancedSettings.matchRules = MatchRules.strict();
 
+        connection = (RecordableHttpsURLConnection) HttpClients.newClient(HttpClientType.HttpsUrlConnection,
+                url + "1", cassette, Mode.Replay, advancedSettings);
+        // make HTTP call (attempt replay from cassette)
+        connection.connect();
+        // Attempt to pull data (e.g. body) from the response (via the input stream)
         // this throws a RuntimeException because of the way the exceptions are coalesced internally
-        FakeDataService.HttpsUrlConnection finalFakeDataService = fakeDataService;
-        fakeDataService.getIPAddressData();
-        // Assert.assertThrows(RuntimeException.class, finalFakeDataService::getIPAddressData);
+        Assert.assertThrows(RuntimeException.class, connection::getInputStream);
     }
 }
