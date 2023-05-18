@@ -249,6 +249,18 @@ public final class MatchRules {
     }
 
     /**
+     * Add a rule to compare two requests by a custom rule.
+     * @param rule A BiFunction that accepts two Request instances and returns true if they match, false otherwise.
+     *             The first parameter is the current in-flight request,
+     *             the second parameter is the recorded request from the current cassette.
+     * @return This MatchRules factory.
+     */
+    public MatchRules byCustomRule(BiFunction<Request, Request, Boolean> rule) {
+        by(rule);
+        return this;
+    }
+
+    /**
      * Execute rules to determine if the received request matches the recorded request.
      *
      * @param receivedRequest Request to find a match for.
