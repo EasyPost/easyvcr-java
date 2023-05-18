@@ -2,6 +2,7 @@
 
 ## Next Release
 
+- New `byCustomRule` function to allow users to define their own matching rule when finding a matching interaction in a cassette
 - Improve error messages when a matching interaction is not found (human-readable error messages)
 - Fix bug where the base URL matching rule was not comparing the scheme, host, and port of the request URL properly
 
