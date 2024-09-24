@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Next Release
+## v0.5.3 (2024-09-24)
 
 - New `byCustomRule` function to allow users to define their own matching rule when finding a matching interaction in a cassette
 - Improve error messages when a matching interaction is not found (human-readable error messages)
