@@ -34,3 +34,6 @@ cassettes/
 
 # Coverage
 *.lcov
+
+# Imported linting config
+easypost_java_style.xml
