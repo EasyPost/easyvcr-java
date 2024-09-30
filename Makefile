@@ -17,7 +17,7 @@ coverage:
 ## install-checkstyle - Install CheckStyle
 install-checkstyle:
 	curl -LJs https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.3.1/checkstyle-10.3.1-all.jar -o checkstyle.jar
-	curl -LJs https://raw.githubusercontent.com/EasyPost/easypost-java/master/easypost_java_style.xml -o easypost_java_style.xml
+	curl -LJs https://raw.githubusercontent.com/EasyPost/examples/refs/heads/master/style_guides/java/easypost_java_style.xml -o easypost_java_style.xml
 
 ## install - Install requirements
 install: | install-checkstyle

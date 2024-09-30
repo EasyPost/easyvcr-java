@@ -74,6 +74,8 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "23" # Always use the latest JDK for building
+      - name: Install dependencies
+        run: make install
       - name: Run CheckStyle checks
         uses: nikitasavinov/checkstyle-action@0.5.1
         with:
