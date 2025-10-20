@@ -45,12 +45,8 @@ publish-dry:
 release:
 	gh release create ${tag} target/*.jar target/*.asc target/*.pom
 
-## scan - Scan the project for serious security issues
-scan:
-	mvn verify -DskipTests=true -Dgpg.skip=true -Dcheckstyle.skip=true -Djavadoc.skip=true -Ddependency-check.failBuildOnCVSS=0 -Ddependency-check.junitFailOnCVSS=0
-
 ## test - Test the project
 test:
 	mvn surefire:test
 
-.PHONY: help build clean coverage install-checkstyle install lint publish publish-dry release scan test
+.PHONY: help build clean coverage install-checkstyle install lint publish publish-dry release test
