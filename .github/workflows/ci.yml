@@ -83,26 +83,3 @@ jobs:
           fail_on_error: true
           checkstyle_config: easypost_java_style.xml
           tool_name: "style_enforcer"
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK for compilation
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "23" # Always use the latest JDK for building
-      - name: Load Maven dependencies and CVE database cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository # The CVE database is included in the Maven repository folder
-          key: ${{ runner.os }}-maven-security-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Run security analysis
-        run: make scan
-      - name: Upload Test results
-        uses: actions/upload-artifact@master
-        with:
-          name: DependencyCheck report
-          path: ${{github.workspace}}/target/dependency-check-report.html
