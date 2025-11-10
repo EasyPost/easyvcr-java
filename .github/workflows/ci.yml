@@ -13,12 +13,13 @@ jobs:
       matrix:
         java_version: [ "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23" ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK for compilation
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "zulu"
-          java-version: "23" # Always use the latest JDK for building
+          java-version: "21" # Always use the most recent LTS JDK for building
+          cache: "maven"
       - name: Load Maven dependencies cache
         uses: actions/cache@v3
         with:
@@ -31,21 +32,23 @@ jobs:
       - name: Compile
         run: make build
       - name: Set up Java ${{ matrix.java_version }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: "zulu"
           java-version: ${{ matrix.java_version }}
+          cache: "maven"
       - name: Run test with Java ${{ matrix.java_version }}
         run: make test
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK for compilation
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "zulu"
-          java-version: "23" # Always use the latest JDK for building
+          java-version: "21" # Always use the most recent LTS JDK for building
+          cache: "maven"
       - name: Install dependencies
         run: make install
       - name: Test coverage
@@ -68,18 +71,18 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK for compilation
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: "zulu"
-          java-version: "23" # Always use the latest JDK for building
-      - name: Install dependencies
-        run: make install
-      - name: Run CheckStyle checks
-        uses: nikitasavinov/checkstyle-action@0.5.1
+          java-version: "21" # Always use the most recent LTS JDK for building
+          cache: "maven"
+      - name: Install checkstyle and style guide
+        run: make install-checkstyle
+      - name: Lint
+        run: make lint
+      - name: Upload Test results
+        uses: actions/upload-artifact@master
         with:
-          level: error
-          fail_on_error: true
-          checkstyle_config: easypost_java_style.xml
-          tool_name: "style_enforcer"
+          name: DependencyCheck report
+          path: ${{github.workspace}}/target/dependency-check-report.html
