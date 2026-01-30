@@ -340,13 +340,13 @@ public class Example {
 
 ```bash
 # Build project
-mvn clean install -DskipTests -Dgpg.skip
+just install
 
 # Run tests
-mvn clean test -B
+just build test
 
 # Run tests with coverage
-mvn clean test -B jacoco:report
+just coverage
 ```
 
 ### Testing
